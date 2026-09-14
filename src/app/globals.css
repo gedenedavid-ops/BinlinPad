@@ -4,7 +4,7 @@
   --color-cream: #FAF8F5;
   --color-cream-dark: #F5F3EF;
   --color-ochre: #F4A236;
-  --color-ochre-dark: #EAA240;
+  --color-ochre-dark: #E8941E;
   --color-ochre-light: #FDF0DC;
   --color-charcoal: #1A1A1A;
   --color-charcoal-soft: #2C2C2C;
@@ -14,7 +14,17 @@
   --color-surface: #FFFFFF;
   --color-surface-raised: #F0EDE8;
 
+  /* Palette émotionnelle journal d'humeur */
+  --mood-focused:   #3B82F6; /* bleu focus */
+  --mood-motivated: #10B981; /* vert élan */
+  --mood-calm:      #6EE7B7; /* vert-menthe calme */
+  --mood-neutral:   #FBBF24; /* jaune neutre */
+  --mood-tired:     #A78BFA; /* violet fatigué */
+  --mood-confused:  #FB923C; /* orange confusion */
+  --mood-anxious:   #F87171; /* rouge-rosé anxieux */
+
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: "Nunito", "Inter", -apple-system, sans-serif;
 
   --radius-card: 1.25rem;
   --radius-lg: 1rem;

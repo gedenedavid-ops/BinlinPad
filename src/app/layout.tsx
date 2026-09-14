@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Nunito } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 import { Providers } from '@/components/Providers';
@@ -7,6 +7,13 @@ import { Providers } from '@/components/Providers';
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
+  display: 'swap',
+});
+
+const nunito = Nunito({
+  subsets: ['latin'],
+  variable: '--font-nunito',
+  weight: ['400', '600', '700', '800', '900'],
   display: 'swap',
 });
 
@@ -45,7 +52,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={inter.variable}>
+    <html lang="fr" className={`${inter.variable} ${nunito.variable}`} suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
