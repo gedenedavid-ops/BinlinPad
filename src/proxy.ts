@@ -2,7 +2,6 @@
 // Protège toutes les routes sauf /auth/* et les assets statiques
 import { auth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
@@ -10,6 +9,7 @@ export default auth((req) => {
   const isPublic =
     pathname.startsWith('/auth') ||
     pathname.startsWith('/api/auth') ||
+    pathname.startsWith('/legal') ||
     pathname === '/';
 
   const isAuthenticated = !!req.auth;

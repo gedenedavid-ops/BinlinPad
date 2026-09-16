@@ -5,9 +5,9 @@ import { signIn } from 'next-auth/react'; // toujours utilisé pour email/passwo
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, Loader2, Mail, Lock, User } from 'lucide-react';
-import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import type { UserType } from '@/types';
+import { SignInPage } from '@/components/ui/sign-in';
 
 // ─── Icônes SVG inline (pas de dépendance externe) ───────────────────────────
 
@@ -24,11 +24,16 @@ function GoogleIcon() {
 
 type Mode = 'connexion' | 'inscription';
 
+function getSafeCallbackUrl(value: string | null): string {
+  if (!value || !value.startsWith('/') || value.startsWith('//')) return '/journal';
+  return value;
+}
+
 // Composant interne — isolé dans Suspense pour useSearchParams
 function AuthForm() {
   const router       = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl  = searchParams.get('callbackUrl') ?? '/journal';
+  const callbackUrl  = getSafeCallbackUrl(searchParams.get('callbackUrl'));
 
   const [mode, setMode]           = useState<Mode>('connexion');
   const [name, setName]           = useState('');
@@ -84,42 +89,14 @@ function AuthForm() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-
-        {/* Logo */}
-        <motion.div
-          initial={{ opacity: 0, y: -16 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center mb-8"
-        >
-          {/* Rotation 3D continue + fade-in */}
-          <motion.div
-            className="mb-3"
-            style={{ perspective: 400 }}
-            initial={{ opacity: 0, rotateY: -90 }}
-            animate={{
-              opacity: 1,
-              rotateY: [0, 18, 0, -18, 0],
-            }}
-            transition={{
-              opacity: { duration: 0.5, ease: 'easeOut' },
-              rotateY: {
-                delay: 0.4,
-                duration: 4,
-                ease: 'easeInOut',
-                repeat: Infinity,
-                repeatType: 'loop',
-              },
-            }}
-          >
-            <Image src="/logo3d.svg" alt="BinlinPad" width={56} height={56} priority />
-          </motion.div>
-          <h1 className="text-2xl font-bold text-[#1A1A1A]">BinlinPad</h1>
-          <p className="text-xs text-[#9B9590] mt-1">Ton compagnon d'études personnel</p>
-        </motion.div>
-
-        {/* Card */}
+    <SignInPage
+      title={mode === 'connexion'
+        ? <>Bon retour<span className="text-[var(--color-ochre)]">.</span></>
+        : <>Crée ton espace<span className="text-[var(--color-ochre)]">.</span></>}
+      description={mode === 'connexion'
+        ? 'Retrouve tes notes, ton cahier et ton espace de révision.'
+        : 'Rassemble ton cahier ou tes notes dans un espace pensé pour apprendre à ton rythme.'}
+    >
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -296,9 +273,10 @@ function AuthForm() {
           </form>
 
           {mode === 'inscription' && (
-            <p className="text-[10px] text-[#C8C4BE] text-center mt-4 leading-relaxed">
-              Tes notes sont sauvegardées de manière sécurisée et accessibles depuis n'importe quel appareil.
-            </p>
+            <div className="mt-4 space-y-2 text-center text-[10px] leading-relaxed text-[#9B9590]">
+              <p>Ton journal d&apos;humeur est facultatif. Il t&apos;aide à observer ton rythme d&apos;étude, sans diagnostic ni alerte.</p>
+              <p className="text-[#C8C4BE]">Ton humeur n&apos;est jamais envoyée à l&apos;IA et tu peux supprimer tes notes à tout moment.</p>
+            </div>
           )}
         </motion.div>
 
@@ -309,8 +287,7 @@ function AuthForm() {
           {' '}et notre{' '}
           <a href="/legal#donnees" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#9B9590] transition-colors">Politique de confidentialité</a>.
         </p>
-      </div>
-    </div>
+    </SignInPage>
   );
 }
 

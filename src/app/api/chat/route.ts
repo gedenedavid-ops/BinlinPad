@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
 
 const DEEPSEEK_API_URL = 'https://api.deepseek.com/chat/completions';
 
@@ -259,15 +260,50 @@ Sois factuel, bref, et utile pour la prochaine session.`;
 
 export async function POST(request: Request) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+    }
+
     const {
       messages,
       context,       // notes perso (SearchResult[]) depuis le store
       query,
       userType = 'eleve',
-      userId,        // id MongoDB de l'utilisateur (pour RAG historique)
 
       lastSeenAt,    // ISO string — dernière visite de l'utilisateur (envoyé par le client)
     } = await request.json();
+
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return NextResponse.json({ error: 'Messages requis' }, { status: 400 });
+    }
+    if (messages.length > 100) {
+      return NextResponse.json({ error: 'Conversation trop longue' }, { status: 413 });
+    }
+
+    const validRoles = new Set(['user', 'assistant']);
+    if (messages.some((message) => (
+      !message ||
+      typeof message.content !== 'string' ||
+      !validRoles.has(message.role) ||
+      message.content.length > 12_000
+    ))) {
+      return NextResponse.json({ error: 'Message invalide' }, { status: 400 });
+    }
+
+    if (typeof query !== 'undefined' && (typeof query !== 'string' || query.length > 2_000)) {
+      return NextResponse.json({ error: 'Question invalide' }, { status: 400 });
+    }
+
+    if (context !== undefined && (!Array.isArray(context) || context.length > 20)) {
+      return NextResponse.json({ error: 'Contexte invalide' }, { status: 400 });
+    }
+
+    if (!['eleve', 'etudiant'].includes(userType)) {
+      return NextResponse.json({ error: 'Profil invalide' }, { status: 400 });
+    }
+
+    const userId = session.user.id;
 
     const apiKey = process.env.DEEPSEEK_API_KEY;
     if (!apiKey) {

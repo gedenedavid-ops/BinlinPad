@@ -8,9 +8,25 @@ export async function POST(request: Request) {
   try {
     const { name, email, password, userType = 'eleve' } = await request.json();
 
-    if (!name?.trim() || !email?.trim() || !password) {
+    if (typeof name !== 'string' || typeof email !== 'string' || typeof password !== 'string' || !name.trim() || !email.trim() || !password) {
       return NextResponse.json(
         { error: 'Tous les champs sont requis.' },
+        { status: 400 }
+      );
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    if (name.trim().length > 80 || normalizedEmail.length > 254 || password.length > 128) {
+      return NextResponse.json(
+        { error: 'Les informations fournies sont trop longues.' },
+        { status: 400 }
+      );
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      return NextResponse.json(
+        { error: 'Adresse email invalide.' },
         { status: 400 }
       );
     }
@@ -24,7 +40,7 @@ export async function POST(request: Request) {
 
     await connectDB();
 
-    const exists = await User.findOne({ email: email.toLowerCase().trim() }).lean();
+    const exists = await User.findOne({ email: normalizedEmail }).lean();
     if (exists) {
       return NextResponse.json(
         { error: 'Un compte avec cet email existe déjà.' },
@@ -36,7 +52,7 @@ export async function POST(request: Request) {
 
     const user = await User.create({
       name:         name.trim(),
-      email:        email.toLowerCase().trim(),
+      email:        normalizedEmail,
       passwordHash,
       userType:     ['eleve', 'etudiant'].includes(userType) ? userType : 'eleve',
     });

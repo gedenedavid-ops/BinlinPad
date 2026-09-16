@@ -203,28 +203,3 @@ export function SettingsSkeleton() {
     </div>
   );
 }
-
-// ─── Skeleton de la Sidebar (pendant chargement session) ─────────────────────
-
-export function SidebarSkeleton() {
-  return (
-    <div className="hidden md:flex flex-col h-screen bg-white border-r border-[#E8E4DF] w-[220px] flex-shrink-0">
-      <div className="h-14 flex items-center px-3 gap-2 border-b border-[#E8E4DF]">
-        <Skeleton className="w-7 h-7 rounded-lg" />
-        <Skeleton className="h-4 w-24" />
-      </div>
-      <div className="px-3 py-3 border-b border-[#E8E4DF]">
-        <Skeleton className="h-10 w-full rounded-xl" />
-      </div>
-      <div className="flex-1 px-2 py-3 space-y-1">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-10 w-full rounded-xl" />
-        ))}
-      </div>
-      <div className="px-3 py-3 border-t border-[#E8E4DF] space-y-2">
-        <Skeleton className="h-8 w-full rounded-xl" />
-        <Skeleton className="h-8 w-full rounded-xl" />
-      </div>
-    </div>
-  );
-}

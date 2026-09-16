@@ -3,13 +3,22 @@ import { useMemo } from 'react';
 import type { Note, NoteFormData, ChatMessage, ChatSession, NavRoute, Toast, Subject, Mood, SearchResult, UserType, LearningProfile } from '@/types';
 import {
   generateId,
-  countWords,
-  estimateReadTime,
   getFromStorage,
   setToStorage,
   reviveNote,
 } from '@/lib/utils';
 import { recordActivity } from '@/lib/streak';
+import { apiRequest } from '@/lib/api-client';
+import {
+  createNote,
+  deleteNote as deleteNoteRequest,
+  indexNote,
+  listNotes,
+  removeNoteIndex,
+  searchNotes,
+  updateNote as updateNoteRequest,
+} from '@/features/notes/api';
+import { getProfile, updateUserType } from '@/features/profile/api';
 
 // ─── Notes Slice ──────────────────────────────────────────────────────────────
 
@@ -61,7 +70,7 @@ type UserProfileSlice = {
 // ─── Preferences Slice ────────────────────────────────────────────────────────
 
 export type NoteLayout = 'masonry' | 'grid' | 'list';
-export type AccentColor = '#F4A236' | '#3B82F6' | '#10B981' | '#8B5CF6' | '#EC4899';
+type AccentColor = '#F4A236' | '#3B82F6' | '#10B981' | '#8B5CF6' | '#EC4899';
 
 export type UserPreferences = {
   displayName: string;
@@ -121,16 +130,7 @@ const LAST_SEEN_KEY = 'binlinpad_last_seen';
 
 async function upsertNoteEmbedding(note: Note): Promise<void> {
   try {
-    await fetch('/api/search', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        noteId: note.id,
-        title: note.title,
-        content: note.content,
-        subject: note.subject,
-      }),
-    });
+    await indexNote(note);
   } catch {
     // Non-blocking — RAG fails silently if Qdrant/Voyage not configured
   }
@@ -138,11 +138,7 @@ async function upsertNoteEmbedding(note: Note): Promise<void> {
 
 async function deleteNoteEmbedding(noteId: string): Promise<void> {
   try {
-    await fetch('/api/search', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ noteId }),
-    });
+    await removeNoteIndex(noteId);
   } catch {
     // Non-blocking
   }
@@ -150,13 +146,7 @@ async function deleteNoteEmbedding(noteId: string): Promise<void> {
 
 async function searchSimilarNotes(query: string): Promise<SearchResult[]> {
   try {
-    const res = await fetch('/api/search', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query, topK: 5 }),
-    });
-    const data = await res.json();
-    return data.results ?? [];
+    return await searchNotes(query);
   } catch {
     return [];
   }
@@ -174,15 +164,7 @@ export const useStore = create<AppStore>((set, get) => ({
   // Charge les notes depuis MongoDB (appelé au montage de la page Journal)
   loadNotes: async () => {
     try {
-      const res = await fetch('/api/notes');
-      if (!res.ok) { set({ notesLoaded: true }); return; }
-      const data = await res.json();
-      const notes: Note[] = (data.notes ?? []).map((n: Record<string, unknown>) => ({
-        ...(n as Note),
-        id:        (n._id ?? n.id) as string,
-        createdAt: new Date(n.createdAt as string),
-        updatedAt: new Date(n.updatedAt as string),
-      }));
+      const notes = await listNotes();
       set({ notes, notesLoaded: true });
     } catch {
       // Fallback localStorage si hors ligne
@@ -192,18 +174,7 @@ export const useStore = create<AppStore>((set, get) => ({
   },
 
   addNote: async (data) => {
-    const res = await fetch('/api/notes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    const json = await res.json();
-    const note: Note = {
-      ...(json.note as Note),
-      id: (json.note._id ?? json.note.id) as string,
-      createdAt: new Date(json.note.createdAt),
-      updatedAt: new Date(json.note.updatedAt),
-    };
+    const note = await createNote(data);
     set((s) => ({ notes: [note, ...s.notes] }));
     upsertNoteEmbedding(note);
     recordActivity();
@@ -211,25 +182,14 @@ export const useStore = create<AppStore>((set, get) => ({
   },
 
   updateNote: async (id, data) => {
-    const res = await fetch(`/api/notes/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    const json = await res.json();
-    const updated: Note = {
-      ...(json.note as Note),
-      id: (json.note._id ?? json.note.id) as string,
-      createdAt: new Date(json.note.createdAt),
-      updatedAt: new Date(json.note.updatedAt),
-    };
+    const updated = await updateNoteRequest(id, data);
     set((s) => ({ notes: s.notes.map((n) => n.id === id ? updated : n) }));
     upsertNoteEmbedding(updated);
     recordActivity();
   },
 
   deleteNote: async (id) => {
-    await fetch(`/api/notes/${id}`, { method: 'DELETE' });
+    await deleteNoteRequest(id);
     set((s) => ({ notes: s.notes.filter((n) => n.id !== id) }));
     deleteNoteEmbedding(id);
   },
@@ -239,11 +199,7 @@ export const useStore = create<AppStore>((set, get) => ({
     if (!note) return;
     const isPinned = !note.isPinned;
     set((s) => ({ notes: s.notes.map((n) => n.id === id ? { ...n, isPinned } : n) }));
-    await fetch(`/api/notes/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isPinned }),
-    });
+    await updateNoteRequest(id, { isPinned });
   },
 
   toggleFavorite: async (id) => {
@@ -251,11 +207,7 @@ export const useStore = create<AppStore>((set, get) => ({
     if (!note) return;
     const isFavorite = !note.isFavorite;
     set((s) => ({ notes: s.notes.map((n) => n.id === id ? { ...n, isFavorite } : n) }));
-    await fetch(`/api/notes/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isFavorite }),
-    });
+    await updateNoteRequest(id, { isFavorite });
   },
 
   setActiveNote: (id) => set({ activeNoteId: id }),
@@ -272,7 +224,7 @@ export const useStore = create<AppStore>((set, get) => ({
   // Charge les sessions depuis MongoDB (appelé au montage de la page Tutor)
   loadSessions: async () => {
     try {
-      const res = await fetch('/api/chat/sessions');
+      const res = await apiRequest('/api/chat/sessions');
       if (!res.ok) return;
       const data = await res.json();
       const sessions: ChatSession[] = (data.sessions ?? []).map((s: Record<string, unknown>) => ({
@@ -301,7 +253,7 @@ export const useStore = create<AppStore>((set, get) => ({
     };
     set((s) => ({ sessions: [session, ...s.sessions], activeSessionId: session.id }));
     // Persister en base (fire-and-forget)
-    fetch('/api/chat/sessions', {
+    apiRequest('/api/chat/sessions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title: session.title, messages: [] }),
@@ -332,12 +284,12 @@ export const useStore = create<AppStore>((set, get) => ({
     try {
       // Suppression MongoDB + vecteurs Qdrant en parallèle
       await Promise.all([
-        fetch('/api/chat/sessions', {
+        apiRequest('/api/chat/sessions', {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ sessionId: id }),
         }),
-        fetch('/api/chat/history', {
+        apiRequest('/api/chat/history', {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ sessionId: id }),
@@ -438,7 +390,7 @@ export const useStore = create<AppStore>((set, get) => ({
       setToStorage(LAST_SEEN_KEY, new Date().toISOString());
       recordActivity();
 
-      const res = await fetch('/api/chat', {
+      const res = await apiRequest('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -446,7 +398,6 @@ export const useStore = create<AppStore>((set, get) => ({
           query: content,
           context: ragResults,
           userType,
-          userId,
           lastSeenAt,
         }),
       });
@@ -496,7 +447,7 @@ export const useStore = create<AppStore>((set, get) => ({
       // ── Indexation de l'échange dans Qdrant (mémoire longue durée) ───────
       // Fire-and-forget — n'affecte pas l'UX si Qdrant est indisponible
       if (userId) {
-        fetch('/api/chat/history', {
+        apiRequest('/api/chat/history', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -512,7 +463,7 @@ export const useStore = create<AppStore>((set, get) => ({
       // ── Sauvegarde persistante (fire-and-forget) ──────────────────────────
       // N'envoyer sessionId que si c'est déjà un vrai id MongoDB (24 hex chars)
       const isMongoId = typeof sessionId === 'string' && /^[0-9a-f]{24}$/i.test(sessionId);
-      fetch('/api/chat/sessions', {
+      apiRequest('/api/chat/sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -564,13 +515,11 @@ export const useStore = create<AppStore>((set, get) => ({
 
   loadUserProfile: async () => {
     try {
-      const res = await fetch('/api/user/profile');
-      if (!res.ok) return;
-      const data = await res.json();
+      const data = await getProfile();
       set({
-        userId: data.user?._id?.toString() ?? data.user?.id ?? null,
-        userType: data.user?.userType ?? 'eleve',
-        learningProfile: data.user?.learningProfile ?? { weakSubjects: [], studiedTopics: [], totalSessions: 0 },
+        userId: data.userId,
+        userType: data.userType,
+        learningProfile: data.learningProfile,
         profileLoaded: true,
       });
     } catch {
@@ -581,11 +530,7 @@ export const useStore = create<AppStore>((set, get) => ({
   setUserType: async (t: UserType) => {
     set({ userType: t });
     try {
-      await fetch('/api/user/profile', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userType: t }),
-      });
+      await updateUserType(t);
     } catch {/* silencieux */}
   },
 

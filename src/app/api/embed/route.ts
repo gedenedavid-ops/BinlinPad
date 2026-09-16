@@ -1,10 +1,23 @@
 import { NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
 
 const VOYAGE_API_URL = 'https://api.voyageai.com/v1/embeddings';
 
 export async function POST(request: Request) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+  }
+
   try {
     const { text } = await request.json();
+
+    if (typeof text !== 'string' || !text.trim()) {
+      return NextResponse.json({ error: 'Texte requis' }, { status: 400 });
+    }
+    if (text.length > 50_000) {
+      return NextResponse.json({ error: 'Texte trop long' }, { status: 413 });
+    }
 
     const apiKey = process.env.VOYAGE_API_KEY;
     if (!apiKey) {

@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+export const { handlers, auth } = NextAuth({
   secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
 
   // Requis en production sur Vercel — NextAuth v5 beta rejette les hosts
@@ -69,11 +69,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       // Pour Google : upsert l'utilisateur dans MongoDB
       try {
-        console.log('[signIn] provider:', account?.provider, '| email:', user.email);
         await connectDB();
-        console.log('[signIn] MongoDB connected');
         const existing = await User.findOne({ email: user.email! }).lean();
-        console.log('[signIn] existing user:', !!existing);
 
         if (!existing) {
           await User.create({
@@ -82,7 +79,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             passwordHash: '',
             image:        user.image ?? undefined,
           });
-          console.log('[signIn] new user created');
         } else if (!existing.image && user.image) {
           await User.updateOne({ email: user.email! }, { image: user.image });
         }

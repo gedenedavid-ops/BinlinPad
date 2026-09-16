@@ -152,7 +152,7 @@ export default function LegalPage() {
               </thead>
               <tbody>
                 <tr><td>Vos notes (titre, contenu, matière)</td><td>Service de tutorat IA</td><td>Oui — sur demande explicite uniquement (voir §9)</td></tr>
-                <tr><td>Humeur par note</td><td>Journal personnel</td><td><strong>Non — jamais</strong></td></tr>
+                <tr><td>Humeur par note (facultative)</td><td>Suivi personnel du rythme d&apos;étude</td><td><strong>Non — jamais envoyée à l&apos;IA ou à des tiers</strong></td></tr>
                 <tr><td>Historique de conversations</td><td>Continuité pédagogique</td><td>Oui — voir §9</td></tr>
                 <tr><td>Préférences d&apos;affichage</td><td>Personnalisation UI</td><td>Non — stocké localement</td></tr>
               </tbody>
@@ -228,9 +228,15 @@ export default function LegalPage() {
 
           <Block title="13. Journal d'humeur — données 100% privées">
             <p>
-              Le journal d&apos;humeur est un outil purement personnel. BinlinPad ne transmet jamais votre
-              humeur à l&apos;IA, à des tiers, ou à tout autre système automatisé.
-              Aucune alerte, aucun scoring, aucun diagnostic n&apos;est effectué à partir de votre humeur.
+              Le journal d&apos;humeur est facultatif et sert uniquement à vous aider à observer votre
+              rythme d&apos;étude dans le temps. Les humeurs sont enregistrées avec vos notes dans votre
+              espace BinlinPad, mais ne sont jamais transmises à l&apos;IA ni à des services tiers.
+              Le tableau de suivi est descriptif : aucune alerte, aucun scoring et aucun diagnostic
+              n&apos;est effectué à partir de votre humeur.
+            </p>
+            <p>
+              Vous pouvez choisir de ne pas renseigner d&apos;humeur, la modifier ou supprimer la note
+              associée à tout moment.
             </p>
           </Block>
 

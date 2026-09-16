@@ -23,8 +23,7 @@ export type NoteTag = {
   label: string;
   color: string;
 };
-
-export type NoteAttachment = {
+type NoteAttachment = {
   id: string;
   type: 'image' | 'pdf' | 'link';
   url: string;
@@ -66,21 +65,9 @@ export type GraphNode = {
   y?: number;
 };
 
-export type GraphLink = {
-  source: string;
-  target: string;
-  strength?: number;
-  label?: string;
-};
-
-export type GraphData = {
-  nodes: GraphNode[];
-  links: GraphLink[];
-};
-
 // ─── Chat / AI Types ──────────────────────────────────────────────────────────
 
-export type ChatRole = 'user' | 'assistant' | 'system';
+type ChatRole = 'user' | 'assistant' | 'system';
 
 export type ChatMessage = {
   id: string;
@@ -93,7 +80,7 @@ export type ChatMessage = {
   timerSeconds?: number;
 };
 
-export type NoteSource = {
+type NoteSource = {
   noteId: string;
   title: string;
   excerpt: string;
@@ -112,13 +99,6 @@ export type ChatSession = {
 // ─── UI State Types ───────────────────────────────────────────────────────────
 
 export type NavRoute = 'journal' | 'graph' | 'tutor' | 'settings';
-
-export type ModalType =
-  | 'note-editor'
-  | 'pin-lock'
-  | 'note-delete'
-  | 'settings'
-  | null;
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -140,23 +120,6 @@ export type LearningProfile = {
   lastActiveAt?: Date;
 };
 
-// ─── API Types ────────────────────────────────────────────────────────────────
-
-export type EmbedRequest = {
-  text: string;
-};
-
-export type EmbedResponse = {
-  embedding: number[];
-  model: string;
-};
-
-export type SearchRequest = {
-  query: string;
-  topK?: number;
-  filter?: Record<string, unknown>;
-};
-
 export type SearchResult = {
   id: string;
   score: number;
@@ -166,15 +129,4 @@ export type SearchResult = {
     content: string;
     subject: Subject;
   };
-};
-
-export type ChatRequest = {
-  messages: Pick<ChatMessage, 'role' | 'content'>[];
-  context?: SearchResult[];
-  userId?: string;
-};
-
-export type ChatResponse = {
-  message: string;
-  sources?: NoteSource[];
 };
