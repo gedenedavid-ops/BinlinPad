@@ -1,0 +1,33 @@
+import type { MetadataRoute } from 'next';
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: 'BinlinPad',
+    short_name: 'BinlinPad',
+    description: "Ton compagnon d'etudes IA personnel",
+    start_url: '/',
+    display: 'standalone',
+    orientation: 'portrait',
+    theme_color: '#F4A236',
+    background_color: '#FAF8F5',
+    icons: [
+      {
+        src: '/favicon-96x96.png',
+        sizes: '96x96',
+        type: 'image/png',
+      },
+      {
+        src: '/web-app-manifest-192x192.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+      {
+        src: '/web-app-manifest-512x512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+    ],
+  };
+}

@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   description: 'BinlinPad est un compagnon d\'études IA chaleureux pour les étudiants. Prends des notes, visualise tes connaissances et apprends avec ton tuteur IA personnel.',
   keywords: ['études', 'notes', 'tuteur IA', 'carte mentale', 'apprentissage', 'étudiants', 'Côte d\'Ivoire'],
   authors: [{ name: 'BinlinPad' }],
-  manifest: '/site.webmanifest',
+  manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -64,7 +64,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <Providers>{children}</Providers>
-        <Analytics />
+        {process.env.VERCEL === '1' && <Analytics />}
       </body>
     </html>
   );

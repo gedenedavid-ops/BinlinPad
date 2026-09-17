@@ -7,7 +7,7 @@ export function LandingNavbar() {
         <span
           role="img"
           aria-label="BinlinPad"
-          className="absolute inset-0 scale-[1.8] bg-[var(--color-ochre)]"
+          className="absolute inset-0 scale-[1.15] bg-[var(--color-ochre)] md:scale-[1.8]"
           style={{
             maskImage: "url('/BINLINPAD.svg')",
             maskPosition: "center",
