@@ -9,11 +9,11 @@ export function LandingNavbar() {
           aria-label="BinlinPad"
           className="absolute inset-0 scale-[1.15] bg-[var(--color-ochre)] md:scale-[1.8]"
           style={{
-            maskImage: "url('/BINLINPAD.svg')",
+            maskImage: "url('/asset/BINLINPAD.png')",
             maskPosition: "center",
             maskRepeat: "no-repeat",
             maskSize: "contain",
-            WebkitMaskImage: "url('/BINLINPAD.svg')",
+            WebkitMaskImage: "url('/asset/BINLINPAD.png')",
             WebkitMaskPosition: "center",
             WebkitMaskRepeat: "no-repeat",
             WebkitMaskSize: "contain",

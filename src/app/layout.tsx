@@ -18,6 +18,7 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://binlinpad.com'), // À modifier avec ton vrai domaine de production
   title: {
     default: 'BinlinPad — Ton compagnon d\'études personnel',
     template: '%s · BinlinPad',
@@ -31,11 +32,28 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
     title: 'BinlinPad',
   },
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
     type: 'website',
     siteName: 'BinlinPad',
     title: 'BinlinPad — Ton compagnon d\'études personnel',
     description: 'Notes intelligentes, carte des connaissances et tuteur IA personnel.',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Aperçu de BinlinPad',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'BinlinPad — Ton compagnon d\'études personnel',
+    description: 'Notes intelligentes, carte des connaissances et tuteur IA personnel.',
+    images: ['/og-image.jpg'],
   },
 };
 
@@ -61,6 +79,21 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="BinlinPad" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                let prefs = localStorage.getItem('binlinpad_prefs');
+                if (prefs) {
+                  let p = JSON.parse(prefs);
+                  if (p.state && p.state.prefs && p.state.prefs.theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                  }
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
       </head>
       <body className="antialiased">
         <Providers>{children}</Providers>

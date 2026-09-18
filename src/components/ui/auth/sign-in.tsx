@@ -19,7 +19,7 @@ export function SignInPage({
       <div className="pointer-events-none absolute inset-x-0 top-0 h-2 bg-[var(--color-ochre)]" />
       <section className="relative mx-auto grid w-full max-w-5xl items-center gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
         <div className="hidden lg:block">
-          <Image src="/BINLINPAD.svg" alt="BinlinPad" width={220} height={64} priority className="h-auto w-56" />
+          <Image src="/asset/BINLINPAD.png" alt="BinlinPad" width={220} height={64} priority className="h-auto w-56" />
           <p className="mt-10 max-w-sm text-4xl font-black leading-[1.05]" style={{ fontFamily: "var(--font-nunito)" }}>
             Ton espace pour apprendre avec plus de clarté<span className="text-[var(--color-ochre)]">.</span>
           </p>
@@ -32,7 +32,7 @@ export function SignInPage({
 
         <div className="mx-auto w-full max-w-md">
           <div className="mb-7 lg:hidden">
-            <Image src="/BINLINPAD.svg" alt="BinlinPad" width={220} height={64} priority className="h-auto w-[min(220px,75vw)]" />
+            <Image src="/asset/BINLINPAD.png" alt="BinlinPad" width={220} height={64} priority className="h-auto w-[min(220px,75vw)]" />
           </div>
           <h1 className="animate-element animate-delay-100 text-4xl font-black leading-tight md:text-5xl">{title}</h1>
           <p className="animate-element animate-delay-200 mt-3 max-w-md text-[var(--bp-text-muted)]">{description}</p>

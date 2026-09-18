@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import NextImage from "next/image";
@@ -15,53 +14,33 @@ const journey = [
   { number: "03", title: "Tu révises", text: "Transforme ce que tu as appris en questions, cartes et exercices." },
 ];
 
+import { useEffect, useRef } from "react";
+
 function MascotVideo() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    if (!video || !canvas) return;
-
-    const context = canvas.getContext("2d", { willReadFrequently: true });
-    if (!context) return;
-
-    let frameId = 0;
-    const renderFrame = () => {
-      if (video.readyState >= 2 && video.videoWidth > 0) {
-        if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-        }
-
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const frame = context.getImageData(0, 0, canvas.width, canvas.height);
-        for (let index = 0; index < frame.data.length; index += 4) {
-          const red = frame.data[index];
-          const green = frame.data[index + 1];
-          const blue = frame.data[index + 2];
-          const brightness = Math.min(red, green, blue);
-          if (brightness > 226 && Math.max(red, green, blue) - brightness < 18) {
-            frame.data[index + 3] = 0;
-          }
-        }
-        context.putImageData(frame, 0, 0);
-      }
-      frameId = requestAnimationFrame(renderFrame);
-    };
-
-    renderFrame();
-    return () => cancelAnimationFrame(frameId);
+    if (videoRef.current) {
+      videoRef.current.play().catch(error => {
+        console.error("Autoplay prevented:", error);
+      });
+    }
   }, []);
 
   return (
-    <>
-      <video ref={videoRef} autoPlay loop muted playsInline className="absolute h-px w-px opacity-0" aria-hidden="true">
-        <source src="/kimyG/binlinpad-cc.mp4" type="video/mp4" />
-      </video>
-      <canvas ref={canvasRef} className="w-full" aria-label="Binlin, la mascotte de BinlinPad" />
-    </>
+    <video 
+      ref={videoRef}
+      autoPlay 
+      loop 
+      muted 
+      playsInline 
+      preload="auto"
+      className="w-full" 
+      aria-label="Binlin, la mascotte de BinlinPad"
+      suppressHydrationWarning
+    >
+      <source src="/asset/binlinpad-cc.webm" type="video/webm" />
+    </video>
   );
 }
 
@@ -84,7 +63,7 @@ export default function LandingPage() {
           <div className="relative order-1 mx-auto flex min-h-[400px] w-full max-w-[620px] items-center justify-center md:order-1 md:min-h-[520px]">
             <div className="absolute h-[300px] w-[300px] rounded-full bg-[var(--color-ochre)]/55 blur-2xl md:h-[440px] md:w-[440px]" />
             <div className="absolute right-0 top-4 h-24 w-24 rounded-full bg-[var(--color-ochre-light)]/70 blur-xl md:right-4 md:top-8 md:h-32 md:w-32" />
-            <div className="relative z-10 w-64 md:w-80 lg:w-[23rem]">
+            <div className="relative z-10 w-64 mix-blend-multiply md:w-80 lg:w-[23rem]">
               <MascotVideo />
             </div>
             <div className="absolute left-1 top-2 z-20 max-w-[170px] rounded-[1.25rem] rounded-bl-md bg-white px-3 py-2.5 shadow-[0_8px_24px_rgba(26,26,26,0.12)] md:left-2 md:top-20 md:max-w-[235px] md:px-4 md:py-3">
