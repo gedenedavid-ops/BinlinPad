@@ -9,7 +9,7 @@ const tape = (
 );
 
 const footerLinks = [
-  { href: "/auth/connexion", label: "Se connecter" },
+  { href: "/connexion", label: "Se connecter" },
   { href: "/#how-it-works", label: "Comment ça marche" },
   { href: "/legal", label: "Confidentialité" },
 ];
@@ -30,7 +30,7 @@ export function FooterTapedDesign() {
               BinlinPad
             </Link>
             <p className="mt-4 max-w-sm text-base leading-relaxed text-[var(--bp-text-muted)]">Pars de ton cahier ou de tes notes pour comprendre, organiser tes idées et avancer à ton rythme.</p>
-            <Link href="/auth/connexion" className="mt-6 inline-flex rounded-full bg-[var(--color-ochre)] px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-[var(--color-ochre-dark)]">Commencer gratuitement</Link>
+            <Link href="/connexion" className="mt-6 inline-flex rounded-full bg-[var(--color-ochre)] px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-[var(--color-ochre-dark)]">Commencer gratuitement</Link>
           </div>
 
           <div>

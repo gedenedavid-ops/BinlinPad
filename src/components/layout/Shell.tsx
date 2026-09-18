@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
-import { ToastContainer } from '@/components/ui/Toast';
+import { ToastContainer } from '@/components/ui/feedback/Toast';
 import { useStore } from '@/store';
 
 interface ShellProps {

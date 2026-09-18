@@ -20,7 +20,7 @@ export function LandingNavbar() {
           }}
         />
       </Link>
-      <Link href="/auth/connexion" className="inline-flex rounded-full bg-[var(--color-ochre)] px-4 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[var(--color-ochre-dark)] md:px-6 md:py-3 md:text-base">
+      <Link href="/connexion" className="inline-flex rounded-full bg-[var(--color-ochre)] px-4 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[var(--color-ochre-dark)] md:px-6 md:py-3 md:text-base">
         Commencer gratuitement
       </Link>
     </header>

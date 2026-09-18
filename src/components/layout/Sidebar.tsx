@@ -158,7 +158,7 @@ export function Sidebar() {
 
         {/* Logout button */}
         <button
-          onClick={() => signOut({ callbackUrl: '/auth/connexion' })}
+          onClick={() => signOut({ callbackUrl: '/connexion' })}
           className={cn(
             'flex items-center gap-2 w-full rounded-xl px-3 py-2 text-xs font-medium text-[#9B9590] hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-500 transition-all',
             sidebarCollapsed && 'justify-center px-2'

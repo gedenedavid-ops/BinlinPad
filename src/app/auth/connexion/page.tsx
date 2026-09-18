@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, Loader2, Mail, Lock, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { UserType } from '@/types';
-import { SignInPage } from '@/components/ui/sign-in';
+import { SignInPage } from '@/components/ui/auth/sign-in';
 
 // ─── Icônes SVG inline (pas de dépendance externe) ───────────────────────────
 
@@ -101,7 +101,7 @@ function AuthForm() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white rounded-3xl border border-[#E8E4DF] p-6 shadow-sm"
+          className="rounded-2xl border border-[#E8E4DF] bg-white p-6 shadow-[0_18px_45px_rgba(74,55,31,0.08)] sm:p-7"
         >
           {/* Mode toggle */}
           <div className="flex gap-1 bg-[#F5F3EF] rounded-xl p-1 mb-5">

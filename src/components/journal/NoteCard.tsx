@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { SUBJECT_CONFIG, MOOD_CONFIG, NOTE_COLORS, formatNoteDate, truncate, cn } from '@/lib/utils';
-import { SubjectBadge, Badge } from '@/components/ui/Badge';
+import { SubjectBadge, Badge } from '@/components/ui/primitives/Badge';
 import type { Note } from '@/types';
 
 interface NoteCardProps {

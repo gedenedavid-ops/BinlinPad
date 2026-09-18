@@ -15,7 +15,7 @@ export default auth((req) => {
   const isAuthenticated = !!req.auth;
 
   if (!isPublic && !isAuthenticated) {
-    const loginUrl = new URL('/auth/connexion', req.url);
+    const loginUrl = new URL('/connexion', req.url);
     loginUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(loginUrl);
   }

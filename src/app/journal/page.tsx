@@ -8,15 +8,15 @@ import {
   LayoutGrid, List, Columns2,
 } from 'lucide-react';
 import { useStore, useFilteredNotes } from '@/store';
-import { NoteCardSkeleton } from '@/components/ui/Skeleton';
 import { SUBJECT_CONFIG, MOOD_CONFIG, cn } from '@/lib/utils';
 import { NoteCard } from '@/components/journal/NoteCard';
 import { NoteEditor } from '@/components/journal/NoteEditor';
 import { PinLockModal } from '@/components/journal/PinLock';
 import { MoodDashboard } from '@/components/journal/MoodDashboard';
 import { WeeklyReport } from '@/components/journal/WeeklyReport';
-import { StreakBadge } from '@/components/ui/StreakBadge';
-import { Button } from '@/components/ui/Button';
+import { NoteCardSkeleton } from '@/components/ui/feedback/Skeleton';
+import { StreakBadge } from '@/components/ui/progress/StreakBadge';
+import { Button } from '@/components/ui/primitives/Button';
 import type { Note, Subject, Mood } from '@/types';
 import type { NoteLayout } from '@/store';
 

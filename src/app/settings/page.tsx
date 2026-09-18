@@ -13,7 +13,7 @@ import { Shell } from '@/components/layout/Shell';
 import { useStore } from '@/store';
 import type { NoteLayout } from '@/store';
 import type { UserType } from '@/types';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/primitives/Button';
 import { cn } from '@/lib/utils';
 
 // ─── Section card wrapper ─────────────────────────────────────────────────────
@@ -279,7 +279,7 @@ export default function SettingsPage() {
     try {
       const res = await fetch('/api/user/account', { method: 'DELETE' });
       if (!res.ok) throw new Error();
-      await signOut({ callbackUrl: '/auth/connexion' });
+      await signOut({ callbackUrl: '/connexion' });
     } catch {
       addToast({ type: 'error', message: 'Erreur lors de la suppression. Réessaie.' });
       setDeletingAccount(false);
@@ -368,7 +368,7 @@ export default function SettingsPage() {
                     <Button
                       variant="danger"
                       size="sm"
-                      onClick={() => signOut({ callbackUrl: '/auth/connexion' })}
+                      onClick={() => signOut({ callbackUrl: '/connexion' })}
                     >
                       <LogOut size={12} /> Déconnexion
                     </Button>

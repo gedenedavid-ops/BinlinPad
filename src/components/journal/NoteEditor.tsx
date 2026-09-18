@@ -11,7 +11,7 @@ import {
 import { useStore } from '@/store';
 import { SUBJECT_CONFIG, MOOD_CONFIG, generateId, countWords, estimateReadTime, cn } from '@/lib/utils';
 import { renderMarkdown } from '@/lib/renderMarkdown';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/primitives/Button';
 import { FlashcardsModal, type Flashcard } from '@/components/journal/FlashcardsModal';
 import type { Subject, Mood, NoteFormData, NoteTag } from '@/types';
 

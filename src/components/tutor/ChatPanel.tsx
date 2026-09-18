@@ -7,11 +7,11 @@ import {
   Plus, MessageSquare, Loader2, User, RotateCcw,
 } from 'lucide-react';
 import { useStore, useActiveSession } from '@/store';
-import { Skeleton } from '@/components/ui/Skeleton';
+import { Skeleton } from '@/components/ui/feedback/Skeleton';
 import { cn, formatRelativeDate } from '@/lib/utils';
 import { renderMarkdown } from '@/lib/renderMarkdown';
 import { ExerciseTimer } from './ExerciseTimer';
-import { StreakBadge } from '@/components/ui/StreakBadge';
+import { StreakBadge } from '@/components/ui/progress/StreakBadge';
 import type { ChatMessage } from '@/types';
 
 const BASE_PROMPTS = [

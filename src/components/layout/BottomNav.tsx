@@ -1,6 +1,7 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { BookOpen, Network, Sparkles, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { NavRoute } from '@/types';
@@ -13,29 +14,42 @@ const NAV_ITEMS: { route: NavRoute; label: string; icon: React.ElementType; href
 ];
 
 export function BottomNav() {
-  const router = useRouter();
   const pathname = usePathname();
   const activeRoute = NAV_ITEMS.find((item) => pathname.startsWith(item.href))?.route ?? 'journal';
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-[#1C1B19] border-t border-[#E8E4DF] dark:border-[#2E2C28] safe-area-bottom">
-      <div className="flex items-center justify-around px-2 py-2">
+    <nav
+      aria-label="Navigation principale"
+      className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:hidden"
+    >
+      <div className="mx-auto flex h-16 w-full max-w-md items-center justify-between gap-1 rounded-[1.35rem] border border-[#E8E4DF] bg-white/95 p-2 shadow-[0_12px_35px_rgba(26,26,26,0.14)] backdrop-blur-xl dark:border-[#2E2C28] dark:bg-[#1C1B19]/95">
         {NAV_ITEMS.map(({ route, label, icon: Icon, href }) => {
           const isActive = activeRoute === route;
           return (
-            <button
+            <motion.a
               key={route}
-              onClick={() => router.push(href)}
+              href={href}
+              whileTap={{ scale: 0.95 }}
+              aria-current={isActive ? 'page' : undefined}
               className={cn(
-                'flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl transition-colors min-w-[56px]',
-                isActive ? 'text-[#F4A236]' : 'text-[#9B9590]'
+                'relative flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl px-2 transition-colors',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F4A236] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#1C1B19]',
+                isActive
+                  ? 'bg-[#FDF0DC] text-[#E8941E] dark:bg-[#3A2B1B] dark:text-[#F4A236]'
+                  : 'text-[#9B9590] hover:bg-[#F5F3EF] hover:text-[#1A1A1A] dark:hover:bg-[#242320] dark:hover:text-[#F0EDE8]'
               )}
             >
-              <Icon size={22} strokeWidth={isActive ? 2.5 : 1.8} />
-              <span className={cn('text-[10px] font-medium', isActive ? 'text-[#F4A236]' : 'text-[#9B9590]')}>
+              <Icon size={20} strokeWidth={isActive ? 2.5 : 1.9} aria-hidden="true" />
+              <motion.span
+                initial={false}
+                animate={{ width: isActive ? 'auto' : 0, opacity: isActive ? 1 : 0 }}
+                transition={{ duration: 0.18 }}
+                className="overflow-hidden whitespace-nowrap text-xs font-bold"
+              >
                 {label}
-              </span>
-            </button>
+              </motion.span>
+              <span className="sr-only">{label}</span>
+            </motion.a>
           );
         })}
       </div>

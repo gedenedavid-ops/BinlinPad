@@ -5,9 +5,9 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import NextImage from "next/image";
 import { LandingNavbar } from "@/components/layout/LandingNavbar";
-import HowItWorks from "@/components/ui/how-it-works";
-import LearningContextBento from "@/components/ui/learning-context-bento";
-import { FooterTapedDesign } from "@/components/ui/footer-taped-design";
+import HowItWorks from "@/components/ui/landing/how-it-works";
+import LearningContextBento from "@/components/ui/landing/learning-context-bento";
+import { FooterTapedDesign } from "@/components/ui/landing/footer-taped-design";
 
 const journey = [
   { number: "01", title: "Tu ajoutes ton cahier ou tes notes", text: "Pars de ce que tu as déjà appris, par matière et à ton rythme." },
@@ -77,7 +77,7 @@ export default function LandingPage() {
             <h1 className="text-6xl font-black leading-[0.95] tracking-tight md:text-8xl" style={{ fontFamily: "var(--font-nunito)" }}>Révise.<br />Comprends.<br />Avance.</h1>
             <h2 className="mt-8 max-w-md text-2xl font-bold leading-tight md:text-3xl" style={{ fontFamily: "var(--font-nunito)" }}>Avec Binlin-IA à tes côtés. 🧡</h2>
             <p className="mt-5 max-w-lg text-lg leading-relaxed text-[var(--bp-text-muted)]">Notes, cours, révisions et conversations réunis dans une IA pensée pour les étudiants ivoiriens.</p>
-            <Link href="/auth/connexion" className="mt-8 inline-flex items-center gap-2 rounded-full bg-[var(--color-ochre)] px-6 py-3.5 font-bold text-white shadow-lg shadow-orange-200/40 transition-all hover:-translate-y-0.5 hover:bg-[var(--color-ochre-dark)]">Commencer gratuitement <ArrowRight size={18} /></Link>
+            <Link href="/connexion" className="mt-8 inline-flex items-center gap-2 rounded-full bg-[var(--color-ochre)] px-6 py-3.5 font-bold text-white shadow-lg shadow-orange-200/40 transition-all hover:-translate-y-0.5 hover:bg-[var(--color-ochre-dark)]">Commencer gratuitement <ArrowRight size={18} /></Link>
             <p className="mt-5 text-sm font-semibold text-[var(--bp-text-muted)]">Tes cours. Ta mémoire. Ton Binlin.</p>
           </div>
 
@@ -108,7 +108,7 @@ export default function LandingPage() {
 
         <section className="mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-28"><div className="rounded-[2rem] border border-[var(--bp-border)] bg-[var(--color-ochre-light)] p-8 md:p-12"><div className="grid items-center gap-10 md:grid-cols-[0.65fr_1.15fr_0.9fr]"><div className="relative mx-auto h-56 w-56 md:h-64 md:w-64"><NextImage src="/kimyG/binlin-secure.svg" alt="Binlin veille sur tes données" fill className="object-contain" /></div><div><p className="text-sm font-bold uppercase tracking-[0.2em] text-[var(--color-ochre-dark)]">Tes données, tes règles</p><h2 className="mt-4 text-4xl font-black tracking-tight md:text-5xl" style={{ fontFamily: "var(--font-nunito)" }}>La confidentialité expliquée clairement.</h2><p className="mt-5 max-w-xl text-lg leading-relaxed text-[var(--bp-text)]">Ton code PIN et ton journal d&apos;humeur restent sur ton appareil. Quand tu demandes de l&apos;aide sur un cours, BinlinIA utilise seulement les passages utiles pour te répondre.</p></div><div className="space-y-3 text-sm font-semibold"><div className="rounded-xl border border-[var(--color-ochre)]/20 bg-white/70 p-4">Ton code PIN reste sur ton appareil</div><div className="rounded-xl border border-[var(--color-ochre)]/20 bg-white/70 p-4">Ton humeur reste privée</div><div className="rounded-xl border border-[var(--color-ochre)]/20 bg-white/70 p-4">Tu peux supprimer ton compte</div></div></div></div></section>
 
-        <section className="px-6 pb-24 text-center md:px-10"><div className="mx-auto max-w-3xl"><h2 className="text-4xl font-black tracking-tight md:text-6xl" style={{ fontFamily: "var(--font-nunito)" }}>Prêt à travailler plus intelligemment&nbsp;?</h2><p className="mx-auto mt-5 max-w-xl text-lg text-[var(--bp-text-muted)]">Crée ton espace, ajoute ta première note et laisse Binlin t&apos;aider à apprendre.</p><Link href="/auth/connexion" className="mt-8 inline-flex items-center gap-2 rounded-full bg-[var(--color-ochre)] px-7 py-4 font-bold text-white transition-colors hover:bg-[var(--color-ochre-dark)]">Commencer gratuitement <ArrowRight size={18} /></Link></div></section>
+        <section className="px-6 pb-24 text-center md:px-10"><div className="mx-auto max-w-3xl"><h2 className="text-4xl font-black tracking-tight md:text-6xl" style={{ fontFamily: "var(--font-nunito)" }}>Prêt à travailler plus intelligemment&nbsp;?</h2><p className="mx-auto mt-5 max-w-xl text-lg text-[var(--bp-text-muted)]">Crée ton espace, ajoute ta première note et laisse Binlin t&apos;aider à apprendre.</p><Link href="/connexion" className="mt-8 inline-flex items-center gap-2 rounded-full bg-[var(--color-ochre)] px-7 py-4 font-bold text-white transition-colors hover:bg-[var(--color-ochre-dark)]">Commencer gratuitement <ArrowRight size={18} /></Link></div></section>
       </main>
 
       <FooterTapedDesign />
