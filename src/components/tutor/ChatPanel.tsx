@@ -3,8 +3,8 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Send, BookOpen, Trash2, ChevronDown,
-  Plus, MessageSquare, Loader2, User, RotateCcw,
+  BookOpen, Trash2, ChevronDown,
+  Plus, MessageSquare, Loader2, User,
 } from 'lucide-react';
 import { useStore, useActiveSession } from '@/store';
 import { Skeleton } from '@/components/ui/feedback/Skeleton';
@@ -12,6 +12,7 @@ import { cn, formatRelativeDate } from '@/lib/utils';
 import { renderMarkdown } from '@/lib/renderMarkdown';
 import { ExerciseTimer } from './ExerciseTimer';
 import { StreakBadge } from '@/components/ui/progress/StreakBadge';
+import { ChatInput } from './ChatInput';
 import type { ChatMessage } from '@/types';
 
 const BASE_PROMPTS = [
@@ -142,19 +143,9 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
   const [showSummary, setShowSummary] = useState(false);
   const suggestedPrompts = useDynamicPrompts(notes);
   const activeSession = useActiveSession();
-  const [input, setInput] = useState('');
+  const [pendingPrompt, setPendingPrompt] = useState<string | undefined>(initialPrompt);
   const [showSessions, setShowSessions] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-
-  // Pré-remplir depuis le graph (une seule fois)
-  useEffect(() => {
-    if (initialPrompt && !input) {
-      setInput(initialPrompt);
-      setTimeout(() => inputRef.current?.focus(), 100);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialPrompt]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -162,28 +153,22 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
 
   // Déclenché par l'ExerciseTimer quand il arrive à 0
   const handleTimerExpire = useCallback(async (msgId: string) => {
-    // On envoie un message système transparent pour que l'IA réagisse
-    void msgId; // l'id n'est pas utile pour l'envoi, mais garde la référence
+    void msgId;
     await sendMessage('[TIMER_EXPIRED] Le temps imparti pour l\'exercice est écoulé.');
   }, [sendMessage]);
 
-  const handleSend = useCallback(async () => {
-    const text = input.trim();
-    if (!text || isAILoading) return;
-    setInput('');
+  const handleSend = useCallback(async (text: string) => {
+    if (!text.trim() || isAILoading) return;
     await sendMessage(text);
-  }, [input, isAILoading, sendMessage]);
+  }, [isAILoading, sendMessage]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
+  const handleReset = useCallback(() => {
+    const { activeSessionId, deleteSession: del, createSession: create } = useStore.getState();
+    if (activeSessionId) { del(activeSessionId); create(); }
+  }, []);
 
   const handlePrompt = (prompt: string) => {
-    setInput(prompt);
-    inputRef.current?.focus();
+    setPendingPrompt(prompt);
   };
 
   return (
@@ -365,57 +350,13 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
 
       {/* Input */}
       <div className="px-4 py-4 border-t border-[#E8E4DF] dark:border-[#2E2C28] flex-shrink-0">
-        <div className="flex items-end gap-2 bg-white dark:bg-[#242320] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-2xl px-3 py-2.5 focus-within:border-[#F4A236] focus-within:ring-2 focus-within:ring-[#F4A236]/20 transition-all">
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Pose une question sur tes notes, demande un quiz…"
-            rows={1}
-            className="flex-1 text-sm text-[#1A1A1A] dark:text-[#F0EDE8] placeholder-[#C8C4BE] bg-transparent resize-none max-h-32 leading-relaxed"
-            style={{ minHeight: '24px' }}
-          />
-          <button
-            onClick={handleSend}
-            disabled={!input.trim() || isAILoading}
-            className={cn(
-              'w-8 h-8 rounded-xl flex items-center justify-center transition-all flex-shrink-0',
-              input.trim() && !isAILoading
-                ? 'bg-[#1A1A1A] text-white hover:bg-[#2C2C2C] active:scale-95'
-                : 'bg-[#F5F3EF] text-[#C8C4BE] cursor-not-allowed'
-            )}
-            aria-label="Send"
-          >
-            {isAILoading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-          </button>
-        </div>
-        <div className="flex items-center justify-between mt-1.5">
-          <p className="text-[9px] text-[#C8C4BE]">Entrée pour envoyer · Maj+Entrée pour saut de ligne</p>
-          <button
-            onClick={() => {
-              const { activeSessionId, deleteSession, createSession } = useStore.getState();
-              if (activeSessionId) {
-                deleteSession(activeSessionId);
-                createSession();
-              }
-            }}
-            className="text-[9px] text-[#C8C4BE] hover:text-red-400 flex items-center gap-1 transition-colors"
-            title="Supprimer la conversation et en démarrer une nouvelle"
-          >
-            <RotateCcw size={9} /> Nouvelle conversation
-          </button>
-        </div>
-
-        {/* Lien d'écoute permanent — toujours visible, jamais déclenché par l'app */}
-        <div className="mt-2 pt-2 border-t border-[#F0ECE8] dark:border-[#2E2C28] flex items-center justify-center gap-1.5">
-          <a
-            href="tel:+22527222263"
-            className="text-[9px] text-[#C8C4BE] hover:text-[#9B9590] transition-colors"
-          >
-            Besoin d'aide ? SOS Amitié CI · 27 22 22 63
-          </a>
-        </div>
+        <ChatInput
+          onSend={handleSend}
+          onReset={handleReset}
+          disabled={isAILoading}
+          initialValue={pendingPrompt}
+          onInitialValueConsumed={() => setPendingPrompt(undefined)}
+        />
       </div>
     </div>
   );
