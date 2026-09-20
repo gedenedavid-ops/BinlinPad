@@ -26,6 +26,8 @@ type Mode = 'connexion' | 'inscription';
 
 function getSafeCallbackUrl(value: string | null): string {
   if (!value || !value.startsWith('/') || value.startsWith('//')) return '/journal';
+  // Éviter une boucle si callbackUrl pointe vers la page de connexion elle-même
+  if (value.startsWith('/connexion') || value.startsWith('/auth/connexion')) return '/journal';
   return value;
 }
 
