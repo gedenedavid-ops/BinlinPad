@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { Sidebar } from './Sidebar';
-import { BottomNav } from './BottomNav';
+import { AppNav } from './AppNav';
 import { ToastContainer } from '@/components/ui/feedback/Toast';
 import { useStore } from '@/store';
 
@@ -14,7 +13,6 @@ export function Shell({ children }: ShellProps) {
   const theme       = useStore((s) => s.prefs.theme);
   const accentColor = useStore((s) => s.prefs.accentColor);
 
-  // Injecte la couleur d'accent + applique la classe dark sur <html>
   useEffect(() => {
     document.documentElement.style.setProperty('--binlinpad-accent', accentColor);
   }, [accentColor]);
@@ -28,12 +26,12 @@ export function Shell({ children }: ShellProps) {
   }, [theme]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#FAF8F5] dark:bg-[#111110]">
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto pb-20 md:pb-0 min-w-0 bg-[#FAF8F5] dark:bg-[#111110]">
+    <div className="min-h-screen bg-[#FAF8F5] dark:bg-[#111110]">
+      <AppNav />
+      {/* padding-top sur desktop (navbar en haut ~68px), padding-bottom sur mobile (navbar en bas ~90px) */}
+      <main className="pt-0 pb-24 md:pt-20 md:pb-0 min-w-0">
         {children}
       </main>
-      <BottomNav />
       <ToastContainer />
     </div>
   );
