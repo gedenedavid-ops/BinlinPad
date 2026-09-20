@@ -101,10 +101,10 @@ function AuthForm() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="rounded-2xl border border-[#E8E4DF] bg-white p-6 shadow-[0_18px_45px_rgba(74,55,31,0.08)] sm:p-7"
+          className="rounded-2xl border border-[#E8E4DF] dark:border-[#2E2C28] bg-white dark:bg-[#1C1B19] p-6 shadow-[0_18px_45px_rgba(74,55,31,0.08)] dark:shadow-[0_18px_45px_rgba(0,0,0,0.4)] sm:p-7"
         >
           {/* Mode toggle */}
-          <div className="flex gap-1 bg-[#F5F3EF] rounded-xl p-1 mb-5">
+          <div className="flex gap-1 bg-[#F5F3EF] dark:bg-[#242320] rounded-xl p-1 mb-5">
             {(['connexion', 'inscription'] as Mode[]).map((m) => (
               <button
                 key={m}
@@ -112,8 +112,8 @@ function AuthForm() {
                 className={cn(
                   'flex-1 py-2 rounded-lg text-sm font-medium transition-all',
                   mode === m
-                    ? 'bg-white text-[#1A1A1A] shadow-sm'
-                    : 'text-[#9B9590] hover:text-[#1A1A1A]'
+                    ? 'bg-white dark:bg-[#1C1B19] text-[#1A1A1A] dark:text-[#F0EDE8] shadow-sm'
+                    : 'text-[#9B9590] hover:text-[#1A1A1A] dark:hover:text-[#F0EDE8]'
                 )}
               >
                 {m === 'connexion' ? 'Se connecter' : 'Créer un compte'}
@@ -126,7 +126,7 @@ function AuthForm() {
             <button
               onClick={handleGoogle}
               disabled={loading}
-              className="w-full flex items-center justify-center gap-3 py-3 bg-white border border-[#E8E4DF] rounded-xl text-sm font-medium text-[#1A1A1A] hover:bg-[#F5F3EF] active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-3 py-3 bg-white dark:bg-[#242320] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-xl text-sm font-medium text-[#1A1A1A] dark:text-[#F0EDE8] hover:bg-[#F5F3EF] dark:hover:bg-[#2E2C28] active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <GoogleIcon />
               Continuer avec Google
@@ -148,9 +148,9 @@ function AuthForm() {
 
           {/* Séparateur */}
           <div className="flex items-center gap-3 mb-5">
-            <div className="flex-1 h-px bg-[#E8E4DF]" />
+            <div className="flex-1 h-px bg-[#E8E4DF] dark:bg-[#2E2C28]" />
             <span className="text-[11px] text-[#C8C4BE] font-medium">ou</span>
-            <div className="flex-1 h-px bg-[#E8E4DF]" />
+            <div className="flex-1 h-px bg-[#E8E4DF] dark:bg-[#2E2C28]" />
           </div>
 
           {/* ── Formulaire email/mot de passe ── */}
@@ -175,7 +175,7 @@ function AuthForm() {
                       placeholder="Ton prénom"
                       required
                       maxLength={80}
-                      className="w-full pl-10 pr-4 py-3 bg-[#F5F3EF] border border-transparent rounded-xl text-sm text-[#1A1A1A] placeholder-[#C8C4BE] focus:border-[#F4A236] focus:ring-2 focus:ring-[#F4A236]/20 transition-all focus:bg-white"
+                      className="w-full pl-10 pr-4 py-3 bg-[#F5F3EF] dark:bg-[#242320] border border-transparent rounded-xl text-sm text-[#1A1A1A] dark:text-[#F0EDE8] placeholder-[#C8C4BE] focus:border-[#F4A236] focus:ring-2 focus:ring-[#F4A236]/20 transition-all focus:bg-white dark:focus:bg-[#1C1B19]"
                     />
                   </div>
 
@@ -191,12 +191,12 @@ function AuthForm() {
                           key={value}
                           type="button"
                           onClick={() => setUserType(value)}
-                          className={cn(
-                            'flex flex-col items-start px-3 py-2.5 rounded-xl border text-left transition-all',
-                            userType === value
-                              ? 'bg-[#FDF0DC] border-[#F4A236] text-[#1A1A1A]'
-                              : 'bg-[#F5F3EF] border-transparent text-[#9B9590] hover:border-[#F4A236]/50'
-                          )}
+                        className={cn(
+                          'flex flex-col items-start px-3 py-2.5 rounded-xl border text-left transition-all',
+                          userType === value
+                            ? 'bg-[#FDF0DC] dark:bg-[#2A1F0A] border-[#F4A236] text-[#1A1A1A] dark:text-[#F0EDE8]'
+                            : 'bg-[#F5F3EF] dark:bg-[#242320] border-transparent text-[#9B9590] hover:border-[#F4A236]/50'
+                        )}
                         >
                           <span className="text-sm font-semibold">{label}</span>
                           <span className="text-[10px] mt-0.5">{sub}</span>
@@ -218,7 +218,7 @@ function AuthForm() {
                 placeholder="ton@email.com"
                 required
                 autoComplete="email"
-                className="w-full pl-10 pr-4 py-3 bg-[#F5F3EF] border border-transparent rounded-xl text-sm text-[#1A1A1A] placeholder-[#C8C4BE] focus:border-[#F4A236] focus:ring-2 focus:ring-[#F4A236]/20 transition-all focus:bg-white"
+                className="w-full pl-10 pr-4 py-3 bg-[#F5F3EF] dark:bg-[#242320] border border-transparent rounded-xl text-sm text-[#1A1A1A] dark:text-[#F0EDE8] placeholder-[#C8C4BE] focus:border-[#F4A236] focus:ring-2 focus:ring-[#F4A236]/20 transition-all focus:bg-white dark:focus:bg-[#1C1B19]"
               />
             </div>
 
@@ -233,12 +233,12 @@ function AuthForm() {
                 required
                 minLength={mode === 'inscription' ? 8 : 1}
                 autoComplete={mode === 'connexion' ? 'current-password' : 'new-password'}
-                className="w-full pl-10 pr-11 py-3 bg-[#F5F3EF] border border-transparent rounded-xl text-sm text-[#1A1A1A] placeholder-[#C8C4BE] focus:border-[#F4A236] focus:ring-2 focus:ring-[#F4A236]/20 transition-all focus:bg-white"
+                className="w-full pl-10 pr-11 py-3 bg-[#F5F3EF] dark:bg-[#242320] border border-transparent rounded-xl text-sm text-[#1A1A1A] dark:text-[#F0EDE8] placeholder-[#C8C4BE] focus:border-[#F4A236] focus:ring-2 focus:ring-[#F4A236]/20 transition-all focus:bg-white dark:focus:bg-[#1C1B19]"
               />
               <button
                 type="button"
                 onClick={() => setShowPwd(!showPwd)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#9B9590] hover:text-[#1A1A1A] transition-colors"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#9B9590] hover:text-[#1A1A1A] dark:hover:text-[#F0EDE8] transition-colors"
               >
                 {showPwd ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
@@ -295,7 +295,7 @@ function AuthForm() {
 export default function AuthPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center">
+      <div className="min-h-screen bg-[#FAF8F5] dark:bg-[#111110] flex items-center justify-center">
         <Loader2 size={24} className="animate-spin text-[#F4A236]" />
       </div>
     }>

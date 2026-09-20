@@ -83,11 +83,14 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                let prefs = localStorage.getItem('binlinpad_prefs');
-                if (prefs) {
-                  let p = JSON.parse(prefs);
-                  if (p.state && p.state.prefs && p.state.prefs.theme === 'dark') {
+                var raw = localStorage.getItem('binlinpad_prefs');
+                if (raw) {
+                  var p = JSON.parse(raw);
+                  var theme = (p && p.theme) ? p.theme : null;
+                  if (theme === 'dark') {
                     document.documentElement.classList.add('dark');
+                  } else {
+                    document.documentElement.classList.remove('dark');
                   }
                 }
               } catch (e) {}

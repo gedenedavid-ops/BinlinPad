@@ -113,11 +113,11 @@ export function MoodDashboard({ notes }: MoodDashboardProps) {
     <motion.div
       initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl border border-[#E8E4DF] bg-white overflow-hidden mb-6"
+      className="rounded-2xl border border-[#E8E4DF] dark:border-[#2E2C28] bg-white dark:bg-[#1C1B19] overflow-hidden mb-6"
     >
       {/* En-tête */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[#F0EDE8]">
-        <p className="text-xs font-semibold text-[#1A1A1A]">Suivi d'humeur</p>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[#F0EDE8] dark:border-[#2E2C28]">
+        <p className="text-xs font-semibold text-[#1A1A1A] dark:text-[#F0EDE8]">Suivi d'humeur</p>
         <div className="flex items-center gap-3">
           {streak > 1 && (
             <span className="flex items-center gap-1 text-[10px] font-semibold text-[#F4A236]">
@@ -189,21 +189,21 @@ export function MoodDashboard({ notes }: MoodDashboardProps) {
             {/* Légende */}
             <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2">
               {(Object.entries(counts14) as [Mood, number][])
-                .sort((a, b) => b[1] - a[1])
-                .map(([mood, count]) => (
-                  <span key={mood} className="flex items-center gap-1 text-[11px] text-[#57606a]">
-                    <span>{MOOD_CONFIG[mood]?.emoji}</span>
-                    <span>{MOOD_CONFIG[mood]?.label}</span>
-                    <span className="font-semibold text-[#1A1A1A]">{count}</span>
-                  </span>
-                ))}
+                  .sort((a, b) => b[1] - a[1])
+                  .map(([mood, count]) => (
+                    <span key={mood} className="flex items-center gap-1 text-[11px] text-[#57606a] dark:text-[#9B9590]">
+                      <span>{MOOD_CONFIG[mood]?.emoji}</span>
+                      <span>{MOOD_CONFIG[mood]?.label}</span>
+                      <span className="font-semibold text-[#1A1A1A] dark:text-[#F0EDE8]">{count}</span>
+                    </span>
+                  ))}
             </div>
           </div>
         )}
 
         {/* ── Insight textuel ── */}
         {insight && (
-          <p className="text-[11px] text-[#9B9590] leading-relaxed border-t border-[#F0EDE8] pt-3">
+          <p className="text-[11px] text-[#9B9590] leading-relaxed border-t border-[#F0EDE8] dark:border-[#2E2C28] pt-3">
             {insight}
           </p>
         )}

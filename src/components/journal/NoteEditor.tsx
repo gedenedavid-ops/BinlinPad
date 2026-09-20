@@ -282,32 +282,32 @@ export function NoteEditor() {
           exit={{ opacity: 0, y: 40 }}
           transition={{ type: 'spring', stiffness: 350, damping: 32 }}
           className={cn(
-            'relative w-full bg-white rounded-t-3xl md:rounded-3xl shadow-2xl flex flex-col overflow-hidden',
+            'relative w-full bg-white dark:bg-[#1C1B19] rounded-t-3xl md:rounded-3xl shadow-2xl flex flex-col overflow-hidden',
             focusMode ? 'h-[95vh] md:max-w-3xl' : 'h-[85vh] md:max-w-2xl md:h-auto md:max-h-[90vh]'
           )}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Toolbar */}
-          <div className="flex items-center gap-2 px-4 py-3 border-b border-[#E8E4DF] flex-shrink-0 flex-wrap">
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-[#E8E4DF] dark:border-[#2E2C28] flex-shrink-0 flex-wrap">
             {/* Subject Picker */}
             <div className="relative">
               <button
                 onClick={() => { setShowSubjectMenu(!showSubjectMenu); setShowMoodMenu(false); setShowColorMenu(false); }}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#F5F3EF] rounded-xl text-xs font-medium text-[#1A1A1A] hover:bg-[#EDE9E3] transition-colors"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#F5F3EF] dark:bg-[#242320] rounded-xl text-xs font-medium text-[#1A1A1A] dark:text-[#F0EDE8] hover:bg-[#EDE9E3] dark:hover:bg-[#2E2C28] transition-colors"
               >
                 <span>{SUBJECT_CONFIG[subject].emoji}</span>
                 <span className="hidden sm:inline max-w-[80px] truncate">{subject}</span>
                 <ChevronDown size={12} />
               </button>
               {showSubjectMenu && (
-                <div className="absolute top-9 left-0 z-10 bg-white border border-[#E8E4DF] rounded-2xl shadow-lg p-2 grid grid-cols-2 gap-1 w-56 max-h-52 overflow-y-auto">
+                <div className="absolute top-9 left-0 z-10 bg-white dark:bg-[#242320] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-2xl shadow-lg p-2 grid grid-cols-2 gap-1 w-56 max-h-52 overflow-y-auto">
                   {SUBJECTS.map((s) => (
                     <button
                       key={s}
                       onClick={() => { setSubject(s); setShowSubjectMenu(false); }}
                       className={cn(
                         'flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs text-left transition-colors',
-                        subject === s ? 'bg-[#FDF0DC] text-[#F4A236]' : 'hover:bg-[#F5F3EF] text-[#1A1A1A]'
+                        subject === s ? 'bg-[#FDF0DC] dark:bg-[#2A1F0A] text-[#F4A236]' : 'hover:bg-[#F5F3EF] dark:hover:bg-[#2E2C28] text-[#1A1A1A] dark:text-[#F0EDE8]'
                       )}
                     >
                       <span>{SUBJECT_CONFIG[s].emoji}</span>
@@ -322,25 +322,25 @@ export function NoteEditor() {
             <div className="relative">
               <button
                 onClick={() => { setShowMoodMenu(!showMoodMenu); setShowSubjectMenu(false); setShowColorMenu(false); }}
-                className="flex items-center gap-1 px-2.5 py-1.5 bg-[#F5F3EF] rounded-xl text-xs hover:bg-[#EDE9E3] transition-colors"
+                className="flex items-center gap-1 px-2.5 py-1.5 bg-[#F5F3EF] dark:bg-[#242320] rounded-xl text-xs hover:bg-[#EDE9E3] dark:hover:bg-[#2E2C28] transition-colors"
                 title="Set mood"
               >
                 {mood ? <span>{MOOD_CONFIG[mood].emoji}</span> : <Smile size={13} className="text-[#9B9590]" />}
                 <ChevronDown size={12} className="text-[#9B9590]" />
               </button>
               {showMoodMenu && (
-                <div className="absolute top-9 left-0 z-10 bg-white border border-[#E8E4DF] rounded-2xl shadow-lg p-2 flex flex-wrap gap-1 w-48">
+                <div className="absolute top-9 left-0 z-10 bg-white dark:bg-[#242320] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-2xl shadow-lg p-2 flex flex-wrap gap-1 w-48">
                   {MOODS.map((m) => (
                     <button
                       key={m}
                       onClick={() => { setMood(mood === m ? undefined : m); setShowMoodMenu(false); }}
                       className={cn(
                         'flex items-center gap-1 px-2 py-1 rounded-xl text-xs transition-colors',
-                        mood === m ? 'bg-[#FDF0DC]' : 'hover:bg-[#F5F3EF]'
+                        mood === m ? 'bg-[#FDF0DC] dark:bg-[#2A1F0A]' : 'hover:bg-[#F5F3EF] dark:hover:bg-[#2E2C28]'
                       )}
                     >
                       <span>{MOOD_CONFIG[m].emoji}</span>
-                      <span className="text-[#1A1A1A]">{MOOD_CONFIG[m].label}</span>
+                      <span className="text-[#1A1A1A] dark:text-[#F0EDE8]">{MOOD_CONFIG[m].label}</span>
                     </button>
                   ))}
                 </div>
@@ -351,13 +351,13 @@ export function NoteEditor() {
             <div className="relative">
               <button
                 onClick={() => { setShowColorMenu(!showColorMenu); setShowSubjectMenu(false); setShowMoodMenu(false); }}
-                className="p-1.5 bg-[#F5F3EF] rounded-xl hover:bg-[#EDE9E3] transition-colors"
+                className="p-1.5 bg-[#F5F3EF] dark:bg-[#242320] rounded-xl hover:bg-[#EDE9E3] dark:hover:bg-[#2E2C28] transition-colors"
                 title="Card color"
               >
                 <Palette size={13} className="text-[#9B9590]" />
               </button>
               {showColorMenu && (
-                <div className="absolute top-9 left-0 z-10 bg-white border border-[#E8E4DF] rounded-2xl shadow-lg p-2 flex gap-2">
+                <div className="absolute top-9 left-0 z-10 bg-white dark:bg-[#242320] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-2xl shadow-lg p-2 flex gap-2">
                   {COLORS.map((c) => (
                     <button
                       key={c.key}
@@ -376,7 +376,7 @@ export function NoteEditor() {
               onClick={() => setIsLocked(!isLocked)}
               className={cn(
                 'p-1.5 rounded-xl transition-colors',
-                isLocked ? 'bg-[#1A1A1A] text-white' : 'bg-[#F5F3EF] text-[#9B9590] hover:bg-[#EDE9E3]'
+                isLocked ? 'bg-[#1A1A1A] dark:bg-[#F0EDE8] text-white dark:text-[#1A1A1A]' : 'bg-[#F5F3EF] dark:bg-[#242320] text-[#9B9590] hover:bg-[#EDE9E3] dark:hover:bg-[#2E2C28]'
               )}
               title={isLocked ? 'Déverrouiller' : 'Verrouiller la note'}
             >
@@ -388,7 +388,7 @@ export function NoteEditor() {
               onClick={() => setIsPinned(!isPinned)}
               className={cn(
                 'p-1.5 rounded-xl transition-colors',
-                isPinned ? 'bg-[#FDF0DC] text-[#F4A236]' : 'bg-[#F5F3EF] text-[#9B9590] hover:bg-[#EDE9E3]'
+                isPinned ? 'bg-[#FDF0DC] dark:bg-[#2A1F0A] text-[#F4A236]' : 'bg-[#F5F3EF] dark:bg-[#242320] text-[#9B9590] hover:bg-[#EDE9E3] dark:hover:bg-[#2E2C28]'
               )}
               title={isPinned ? 'Désépingler' : 'Épingler la note'}
             >
@@ -403,7 +403,7 @@ export function NoteEditor() {
                 'p-1.5 rounded-xl transition-colors ml-auto',
                 isOcrLoading
                   ? 'bg-[#F4A236] text-white'
-                  : 'bg-[#F5F3EF] text-[#9B9590] hover:bg-[#EDE9E3] hover:text-[#1A1A1A]'
+                  : 'bg-[#F5F3EF] dark:bg-[#242320] text-[#9B9590] hover:bg-[#EDE9E3] dark:hover:bg-[#2E2C28] hover:text-[#1A1A1A] dark:hover:text-[#F0EDE8]'
               )}
               title="Scanner une feuille manuscrite (OCR Gemini)"
             >
@@ -423,7 +423,7 @@ export function NoteEditor() {
               onClick={() => setFocusMode(!focusMode)}
               className={cn(
                 'p-1.5 rounded-xl transition-colors',
-                focusMode ? 'bg-[#1A1A1A] text-white' : 'bg-[#F5F3EF] text-[#9B9590] hover:bg-[#EDE9E3]'
+                focusMode ? 'bg-[#1A1A1A] dark:bg-[#F0EDE8] text-white dark:text-[#1A1A1A]' : 'bg-[#F5F3EF] dark:bg-[#242320] text-[#9B9590] hover:bg-[#EDE9E3] dark:hover:bg-[#2E2C28]'
               )}
               title={focusMode ? 'Quitter le mode focus' : 'Mode focus'}
             >
@@ -432,7 +432,7 @@ export function NoteEditor() {
 
             <button
               onClick={closeEditor}
-              className="p-1.5 rounded-xl bg-[#F5F3EF] text-[#9B9590] hover:bg-[#EDE9E3] hover:text-[#1A1A1A] transition-colors"
+              className="p-1.5 rounded-xl bg-[#F5F3EF] dark:bg-[#242320] text-[#9B9590] hover:bg-[#EDE9E3] dark:hover:bg-[#2E2C28] hover:text-[#1A1A1A] dark:hover:text-[#F0EDE8] transition-colors"
             >
               <X size={13} />
             </button>
@@ -440,7 +440,7 @@ export function NoteEditor() {
 
           {/* Barre IA — visible uniquement en mode édition d'une note existante */}
           {existingNote && (
-          <div className="flex items-center gap-1.5 px-4 py-2 bg-[#FDFAF5] border-b border-[#E8E4DF] flex-shrink-0 flex-wrap">
+          <div className="flex items-center gap-1.5 px-4 py-2 bg-[#FDFAF5] dark:bg-[#242320] border-b border-[#E8E4DF] dark:border-[#2E2C28] flex-shrink-0 flex-wrap">
             <span className="text-[10px] font-semibold text-[#9B9590] mr-1">IA</span>
             {(
               [
@@ -459,7 +459,7 @@ export function NoteEditor() {
                   'flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-medium transition-all',
                   aiLoading === mode
                     ? 'bg-[#F4A236] text-white'
-                    : 'bg-white border border-[#E8E4DF] text-[#57514C] hover:border-[#F4A236] hover:text-[#F4A236]',
+                    : 'bg-white dark:bg-[#1C1B19] border border-[#E8E4DF] dark:border-[#2E2C28] text-[#57514C] dark:text-[#9B9590] hover:border-[#F4A236] hover:text-[#F4A236]',
                   !!aiLoading && aiLoading !== mode && 'opacity-50 cursor-not-allowed'
                 )}
               >
@@ -478,7 +478,7 @@ export function NoteEditor() {
                 'flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-medium transition-all',
                 isRecording
                   ? 'bg-red-500 text-white animate-pulse'
-                  : 'bg-white border border-[#E8E4DF] text-[#57514C] hover:border-[#F4A236] hover:text-[#F4A236]'
+                  : 'bg-white dark:bg-[#1C1B19] border border-[#E8E4DF] dark:border-[#2E2C28] text-[#57514C] dark:text-[#9B9590] hover:border-[#F4A236] hover:text-[#F4A236]'
               )}
               title={isRecording ? 'Arrêter la dictée' : 'Dicter une note'}
             >
@@ -496,7 +496,7 @@ export function NoteEditor() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Titre de la note…"
-              className="w-full text-xl font-bold text-[#1A1A1A] placeholder-[#C8C4BE] bg-transparent border-none focus:outline-none"
+              className="w-full text-xl font-bold text-[#1A1A1A] dark:text-[#F0EDE8] placeholder-[#C8C4BE] bg-transparent border-none focus:outline-none"
             />
           </div>
 
@@ -507,7 +507,7 @@ export function NoteEditor() {
               value={content}
               onChange={(e) => { setContent(e.target.value); setAiSuggestion(null); }}
               placeholder="Commence à écrire… Cours, idées, questions, réflexions. Il n'y a pas de mauvaise façon de prendre des notes."
-              className="w-full h-full min-h-[200px] resize-none text-[#1A1A1A] placeholder-[#C8C4BE] bg-transparent text-sm leading-relaxed focus:outline-none note-content"
+              className="w-full h-full min-h-[200px] resize-none text-[#1A1A1A] dark:text-[#F0EDE8] placeholder-[#C8C4BE] bg-transparent text-sm leading-relaxed focus:outline-none note-content"
             />
           </div>
 
@@ -518,7 +518,7 @@ export function NoteEditor() {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="border-t border-[#E8E4DF] bg-[#FDFAF5] overflow-hidden flex-shrink-0"
+                className="border-t border-[#E8E4DF] dark:border-[#2E2C28] bg-[#FDFAF5] dark:bg-[#242320] overflow-hidden flex-shrink-0"
               >
                 <div className="px-5 py-3 max-h-64 overflow-y-auto">
                   <div className="flex items-center justify-between mb-2">
@@ -529,12 +529,12 @@ export function NoteEditor() {
                     </span>
                     <button
                       onClick={() => setAiSuggestion(null)}
-                      className="p-1 rounded-lg text-[#9B9590] hover:text-[#1A1A1A] hover:bg-[#EDE9E3] transition-colors"
+                      className="p-1 rounded-lg text-[#9B9590] hover:text-[#1A1A1A] dark:hover:text-[#F0EDE8] hover:bg-[#EDE9E3] dark:hover:bg-[#2E2C28] transition-colors"
                     >
                       <ChevronUp size={12} />
                     </button>
                   </div>
-                  <div className="text-xs text-[#1A1A1A] leading-relaxed space-y-0.5">
+                  <div className="text-xs text-[#1A1A1A] dark:text-[#F0EDE8] leading-relaxed space-y-0.5">
                     {renderMarkdown(aiSuggestion.result)}
                   </div>
                   {aiSuggestion.mode === 'complete' && (
@@ -557,12 +557,12 @@ export function NoteEditor() {
           </AnimatePresence>
 
           {/* Tags row */}
-          <div className="px-5 py-2 border-t border-[#F5F3EF] flex flex-wrap items-center gap-1.5">
+          <div className="px-5 py-2 border-t border-[#F5F3EF] dark:border-[#2E2C28] flex flex-wrap items-center gap-1.5">
             <Tag size={12} className="text-[#9B9590]" />
             {tags.map((tag) => (
               <span
                 key={tag.id}
-                className="flex items-center gap-1 text-[11px] px-2 py-0.5 bg-[#F5F3EF] text-[#9B9590] rounded-full"
+                className="flex items-center gap-1 text-[11px] px-2 py-0.5 bg-[#F5F3EF] dark:bg-[#242320] text-[#9B9590] rounded-full"
               >
                 #{tag.label}
                 <button
@@ -582,12 +582,12 @@ export function NoteEditor() {
               }}
               onBlur={addTag}
               placeholder="Ajouter un tag…"
-              className="text-[11px] text-[#9B9590] placeholder-[#C8C4BE] bg-transparent w-20 focus:outline-none"
+              className="text-[11px] text-[#9B9590] placeholder-[#C8C4BE] dark:placeholder-[#4A4845] bg-transparent w-20 focus:outline-none"
             />
           </div>
 
           {/* Footer */}
-          <div className="px-5 py-3 border-t border-[#E8E4DF] flex items-center justify-between flex-shrink-0">
+          <div className="px-5 py-3 border-t border-[#E8E4DF] dark:border-[#2E2C28] flex items-center justify-between flex-shrink-0">
             <div className="flex items-center gap-3 text-[11px] text-[#9B9590]">
               <span>{wordCount} mot{wordCount > 1 ? 's' : ''}</span>
               <span>~{readTime} min lec.</span>

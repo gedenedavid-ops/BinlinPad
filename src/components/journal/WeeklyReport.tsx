@@ -58,14 +58,14 @@ export function WeeklyReport({ notes }: WeeklyReportProps) {
     <motion.div
       initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mb-5 p-4 bg-white border border-[#E8E4DF] rounded-2xl"
+      className="mb-5 p-4 bg-white dark:bg-[#1C1B19] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-2xl"
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-xl bg-[#FDF0DC] flex items-center justify-center">
+          <div className="w-7 h-7 rounded-xl bg-[#FDF0DC] dark:bg-[#2A1F0A] flex items-center justify-center">
             <Calendar size={13} className="text-[#F4A236]" />
           </div>
-          <span className="text-xs font-semibold text-[#1A1A1A]">Cette semaine</span>
+          <span className="text-xs font-semibold text-[#1A1A1A] dark:text-[#F0EDE8]">Cette semaine</span>
         </div>
         <span className={`text-[10px] font-medium ${trendColor}`}>{trendLabel}</span>
       </div>
@@ -75,14 +75,14 @@ export function WeeklyReport({ notes }: WeeklyReportProps) {
           <div className="flex items-center justify-center gap-1 mb-0.5">
             <BookOpen size={11} className="text-[#F4A236]" />
           </div>
-          <p className="text-lg font-bold text-[#1A1A1A]">{report.count}</p>
+          <p className="text-lg font-bold text-[#1A1A1A] dark:text-[#F0EDE8]">{report.count}</p>
           <p className="text-[10px] text-[#9B9590]">note{report.count > 1 ? 's' : ''}</p>
         </div>
         <div className="text-center">
           <div className="flex items-center justify-center gap-1 mb-0.5">
             <PenLine size={11} className="text-[#F4A236]" />
           </div>
-          <p className="text-lg font-bold text-[#1A1A1A]">
+          <p className="text-lg font-bold text-[#1A1A1A] dark:text-[#F0EDE8]">
             {report.wordCount > 999 ? `${(report.wordCount / 1000).toFixed(1)}k` : report.wordCount}
           </p>
           <p className="text-[10px] text-[#9B9590]">mots</p>
@@ -91,15 +91,15 @@ export function WeeklyReport({ notes }: WeeklyReportProps) {
           <div className="flex items-center justify-center gap-1 mb-0.5">
             <TrendingUp size={11} className="text-[#F4A236]" />
           </div>
-          <p className="text-lg font-bold text-[#1A1A1A]">{report.activeDays}</p>
+          <p className="text-lg font-bold text-[#1A1A1A] dark:text-[#F0EDE8]">{report.activeDays}</p>
           <p className="text-[10px] text-[#9B9590]">jour{report.activeDays > 1 ? 's' : ''} actifs</p>
         </div>
       </div>
 
       {report.topSubject && (
-        <div className="mt-3 pt-3 border-t border-[#F5F3EF] flex items-center gap-1.5">
+        <div className="mt-3 pt-3 border-t border-[#F5F3EF] dark:border-[#2E2C28] flex items-center gap-1.5">
           <span className="text-sm">{SUBJECT_CONFIG[report.topSubject[0] as Subject]?.emoji}</span>
-          <span className="text-[11px] text-[#57514C]">
+          <span className="text-[11px] text-[#57514C] dark:text-[#9B9590]">
             Top matière : <strong>{report.topSubject[0]}</strong> ({report.topSubject[1]} note{(report.topSubject[1] ?? 0) > 1 ? 's' : ''})
           </span>
         </div>

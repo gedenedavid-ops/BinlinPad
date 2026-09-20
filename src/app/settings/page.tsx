@@ -143,31 +143,31 @@ function PinChangePanel() {
       animate={shake ? { x: [-4, 4, -4, 4, 0] } : {}}
       className="space-y-3"
     >
-      <p className="text-xs font-medium text-[#1A1A1A]">{stepLabel[step]}</p>
+      <p className="text-xs font-medium text-[#1A1A1A] dark:text-[#F0EDE8]">{stepLabel[step]}</p>
       <div className="flex gap-3">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className={cn(
             'w-3 h-3 rounded-full border-2 transition-all',
-            i < activeValue.length ? 'bg-[#F4A236] border-[#F4A236]' : 'bg-transparent border-[#C8C4BE]'
+            i < activeValue.length ? 'bg-[#F4A236] border-[#F4A236]' : 'bg-transparent border-[#C8C4BE] dark:border-[#4A4845]'
           )} />
         ))}
       </div>
       <div className="grid grid-cols-3 gap-2 max-w-[200px]">
         {['1','2','3','4','5','6','7','8','9'].map((d) => (
           <button key={d} onClick={() => handleDigit(d)}
-            className="h-11 rounded-xl bg-[#F5F3EF] text-[#1A1A1A] text-base font-medium hover:bg-[#EDE9E3] active:scale-95 transition-all"
+            className="h-11 rounded-xl bg-[#F5F3EF] dark:bg-[#242320] text-[#1A1A1A] dark:text-[#F0EDE8] text-base font-medium hover:bg-[#EDE9E3] dark:hover:bg-[#2E2C28] active:scale-95 transition-all"
           >{d}</button>
         ))}
         <div />
         <button onClick={() => handleDigit('0')}
-          className="h-11 rounded-xl bg-[#F5F3EF] text-[#1A1A1A] text-base font-medium hover:bg-[#EDE9E3] active:scale-95 transition-all"
+          className="h-11 rounded-xl bg-[#F5F3EF] dark:bg-[#242320] text-[#1A1A1A] dark:text-[#F0EDE8] text-base font-medium hover:bg-[#EDE9E3] dark:hover:bg-[#2E2C28] active:scale-95 transition-all"
         >0</button>
         <button onClick={handleDelete}
-          className="h-11 rounded-xl bg-[#F5F3EF] text-[#9B9590] flex items-center justify-center hover:bg-[#EDE9E3] active:scale-95 transition-all"
+          className="h-11 rounded-xl bg-[#F5F3EF] dark:bg-[#242320] text-[#9B9590] flex items-center justify-center hover:bg-[#EDE9E3] dark:hover:bg-[#2E2C28] active:scale-95 transition-all"
         ><Delete size={16} /></button>
       </div>
       <button onClick={() => { setStep('idle'); setCurrent(''); setNext(''); setConfirm(''); }}
-        className="text-xs text-[#9B9590] hover:text-[#1A1A1A] transition-colors">
+        className="text-xs text-[#9B9590] hover:text-[#1A1A1A] dark:hover:text-[#F0EDE8] transition-colors">
         Annuler
       </button>
     </motion.div>
@@ -209,7 +209,7 @@ function SpeakToAdvisorButton() {
     <button
       onClick={handleSend}
       disabled={sending}
-      className="w-full flex items-center gap-2 px-3 py-2.5 bg-white border border-[#E8E4DF] rounded-xl text-xs font-medium text-[#1A1A1A] hover:border-[#F4A236] active:scale-[0.98] transition-all disabled:opacity-60"
+      className="w-full flex items-center gap-2 px-3 py-2.5 bg-white dark:bg-[#242320] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-xl text-xs font-medium text-[#1A1A1A] dark:text-[#F0EDE8] hover:border-[#F4A236] active:scale-[0.98] transition-all disabled:opacity-60"
     >
       <MessageCircle size={12} className="text-[#9B9590]" />
       {sending ? 'Envoi…' : "Je veux en parler à quelqu'un"}
@@ -297,12 +297,12 @@ export default function SettingsPage() {
 
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-[#1A1A1A]">Paramètres</h1>
+          <h1 className="text-2xl font-bold text-[#1A1A1A] dark:text-[#F0EDE8]">Paramètres</h1>
           <p className="text-xs text-[#9B9590] mt-0.5">Personnalise ton expérience BinlinPad</p>
         </div>
 
         {/* Tab bar */}
-        <div className="flex gap-1 bg-[#F5F3EF] rounded-2xl p-1 mb-6">
+        <div className="flex gap-1 bg-[#F5F3EF] dark:bg-[#242320] rounded-2xl p-1 mb-6">
           {NAV.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
@@ -310,8 +310,8 @@ export default function SettingsPage() {
               className={cn(
                 'flex items-center justify-center gap-1.5 flex-1 py-2 rounded-xl text-xs font-medium transition-all',
                 section === key
-                  ? 'bg-white text-[#1A1A1A] shadow-sm'
-                  : 'text-[#9B9590] hover:text-[#1A1A1A]'
+                  ? 'bg-white dark:bg-[#1C1B19] text-[#1A1A1A] dark:text-[#F0EDE8] shadow-sm'
+                  : 'text-[#9B9590] hover:text-[#1A1A1A] dark:hover:text-[#F0EDE8]'
               )}
             >
               <Icon size={13} />
@@ -349,7 +349,7 @@ export default function SettingsPage() {
                         onKeyDown={(e) => e.key === 'Enter' && saveName()}
                         placeholder="Ton prénom…"
                         maxLength={40}
-                        className="flex-1 px-3 py-2 bg-[#F5F3EF] border border-[#E8E4DF] rounded-xl text-sm text-[#1A1A1A] placeholder-[#C8C4BE] focus:border-[#F4A236] focus:ring-1 focus:ring-[#F4A236]/20 transition-all"
+                        className="flex-1 px-3 py-2 bg-[#F5F3EF] dark:bg-[#242320] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-xl text-sm text-[#1A1A1A] dark:text-[#F0EDE8] placeholder-[#C8C4BE] focus:border-[#F4A236] focus:ring-1 focus:ring-[#F4A236]/20 transition-all"
                       />
                       <Button variant="secondary" size="sm" onClick={saveName}>
                         {nameSaved ? <Check size={13} className="text-green-500" /> : 'Sauvegarder'}
@@ -360,10 +360,10 @@ export default function SettingsPage() {
 
                 {/* Compte connecté + déconnexion */}
                 {session?.user?.email && (
-                  <div className="flex items-center gap-3 p-3 bg-[#F5F3EF] rounded-xl">
+                  <div className="flex items-center gap-3 p-3 bg-[#F5F3EF] dark:bg-[#242320] rounded-xl">
                     <div className="flex-1 min-w-0">
                       <p className="text-[11px] text-[#9B9590]">Compte connecté</p>
-                      <p className="text-xs font-medium text-[#1A1A1A] truncate">{session.user.email}</p>
+                      <p className="text-xs font-medium text-[#1A1A1A] dark:text-[#F0EDE8] truncate">{session.user.email}</p>
                     </div>
                     <Button
                       variant="danger"
@@ -379,7 +379,7 @@ export default function SettingsPage() {
               {/* Profil tuteur IA */}
               <SectionCard title="Tuteur IA" icon={User}>
                 <div>
-                  <p className="text-sm font-medium text-[#1A1A1A] mb-2">Mon profil</p>
+                  <p className="text-sm font-medium text-[#1A1A1A] dark:text-[#F0EDE8] mb-2">Mon profil</p>
                   <div className="grid grid-cols-2 gap-2">
                     {USER_TYPES.map(({ value, label, desc }) => (
                       <button
@@ -388,8 +388,8 @@ export default function SettingsPage() {
                         className={cn(
                           'flex flex-col gap-1 p-3 rounded-xl border text-left transition-all',
                           userType === value
-                            ? 'bg-[#FDF0DC] border-[#F4A236] text-[#1A1A1A]'
-                            : 'bg-white border-[#E8E4DF] text-[#9B9590] hover:border-[#F4A236]'
+                            ? 'bg-[#FDF0DC] dark:bg-[#2A1F0A] border-[#F4A236] text-[#1A1A1A] dark:text-[#F0EDE8]'
+                            : 'bg-white dark:bg-[#242320] border-[#E8E4DF] dark:border-[#2E2C28] text-[#9B9590] hover:border-[#F4A236]'
                         )}
                       >
                         <span className="text-sm font-semibold">{label}</span>
@@ -402,7 +402,7 @@ export default function SettingsPage() {
                 {/* Toggle IA */}
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-sm font-medium text-[#1A1A1A]">Activer les fonctions IA</p>
+                    <p className="text-sm font-medium text-[#1A1A1A] dark:text-[#F0EDE8]">Activer les fonctions IA</p>
                     <p className="text-xs text-[#9B9590] mt-0.5">
                       Désactive pour une utilisation 100 % hors ligne. Aucune donnée n&apos;est envoyée à l&apos;IA.
                     </p>
@@ -413,7 +413,7 @@ export default function SettingsPage() {
                   />
                 </div>
 
-                <div className="flex gap-2 p-3 bg-[#F5F3EF] rounded-xl">
+                <div className="flex gap-2 p-3 bg-[#F5F3EF] dark:bg-[#242320] rounded-xl">
                   <Info size={13} className="text-[#9B9590] flex-shrink-0 mt-0.5" />
                   <p className="text-[11px] text-[#9B9590] leading-relaxed">
                     {userType === 'eleve'
@@ -425,17 +425,17 @@ export default function SettingsPage() {
               </SectionCard>
 
               {/* Ressource d'écoute */}
-              <div className="rounded-2xl border border-[#E8E4DF] bg-[#F5F3EF] p-4 space-y-3">
+              <div className="rounded-2xl border border-[#E8E4DF] dark:border-[#2E2C28] bg-[#F5F3EF] dark:bg-[#1C1B19] p-4 space-y-3">
                 <div className="flex items-center gap-2">
                   <Phone size={14} className="text-[#9B9590]" />
-                  <p className="text-xs font-semibold text-[#1A1A1A]">Besoin de parler à quelqu&apos;un ?</p>
+                  <p className="text-xs font-semibold text-[#1A1A1A] dark:text-[#F0EDE8]">Besoin de parler à quelqu&apos;un ?</p>
                 </div>
                 <p className="text-[11px] text-[#9B9590] leading-relaxed">
                   Si tu traverses une période difficile, des personnes formées sont disponibles pour t&apos;écouter — en toute confidentialité.
                 </p>
                 <a
                   href="tel:+22527222263"
-                  className="flex items-center gap-2 px-3 py-2.5 bg-white border border-[#E8E4DF] rounded-xl text-xs font-medium text-[#1A1A1A] hover:border-[#F4A236] transition-all"
+                  className="flex items-center gap-2 px-3 py-2.5 bg-white dark:bg-[#242320] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-xl text-xs font-medium text-[#1A1A1A] dark:text-[#F0EDE8] hover:border-[#F4A236] transition-all"
                 >
                   <Phone size={12} className="text-[#9B9590]" />
                   SOS Amitié Côte d&apos;Ivoire · 27 22 22 63
@@ -485,8 +485,8 @@ export default function SettingsPage() {
                       className={cn(
                         'flex flex-col items-center gap-1.5 flex-1 py-3 rounded-xl border text-xs font-medium transition-all',
                         prefs.noteLayout === value
-                          ? 'bg-[#1A1A1A] text-white border-[#1A1A1A]'
-                          : 'bg-white text-[#9B9590] border-[#E8E4DF] hover:border-[#1A1A1A] hover:text-[#1A1A1A]'
+                          ? 'bg-[#1A1A1A] dark:bg-[#F0EDE8] text-white dark:text-[#1A1A1A] border-[#1A1A1A] dark:border-[#F0EDE8]'
+                          : 'bg-white dark:bg-[#242320] text-[#9B9590] border-[#E8E4DF] dark:border-[#2E2C28] hover:border-[#1A1A1A] dark:hover:border-[#F0EDE8] hover:text-[#1A1A1A] dark:hover:text-[#F0EDE8]'
                       )}
                     >
                       <Icon size={16} />
@@ -505,8 +505,8 @@ export default function SettingsPage() {
                       className={cn(
                         'flex items-center gap-2 flex-1 px-3 py-2.5 rounded-xl border text-xs font-medium transition-all',
                         prefs.language === value
-                          ? 'bg-[#1A1A1A] text-white border-[#1A1A1A]'
-                          : 'bg-white text-[#9B9590] border-[#E8E4DF] hover:border-[#1A1A1A] hover:text-[#1A1A1A]'
+                          ? 'bg-[#1A1A1A] dark:bg-[#F0EDE8] text-white dark:text-[#1A1A1A] border-[#1A1A1A] dark:border-[#F0EDE8]'
+                          : 'bg-white dark:bg-[#242320] text-[#9B9590] border-[#E8E4DF] dark:border-[#2E2C28] hover:border-[#1A1A1A] dark:hover:border-[#F0EDE8] hover:text-[#1A1A1A] dark:hover:text-[#F0EDE8]'
                       )}
                     >
                       <span>{flag}</span>
@@ -556,9 +556,9 @@ export default function SettingsPage() {
                     },
                   ].map(({ label, description, ok }) => (
                     <div key={label} className="flex items-start gap-3">
-                      <span className="mt-0.5 flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-green-50 text-green-600">✓</span>
+                      <span className="mt-0.5 flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400">✓</span>
                       <div className={ok ? '' : 'opacity-50'}>
-                        <p className="text-xs font-medium text-[#1A1A1A]">{label}</p>
+                        <p className="text-xs font-medium text-[#1A1A1A] dark:text-[#F0EDE8]">{label}</p>
                         <p className="text-[11px] text-[#9B9590] mt-0.5 leading-relaxed">{description}</p>
                       </div>
                     </div>
@@ -582,8 +582,8 @@ export default function SettingsPage() {
                     { label: 'Notes épinglées',    value: pinned },
                     { label: 'Notes verrouillées', value: locked },
                   ].map(({ label, value }) => (
-                    <div key={label} className="bg-[#F5F3EF] rounded-xl p-3">
-                      <p className="text-lg font-bold text-[#1A1A1A]">{value}</p>
+                    <div key={label} className="bg-[#F5F3EF] dark:bg-[#242320] rounded-xl p-3">
+                      <p className="text-lg font-bold text-[#1A1A1A] dark:text-[#F0EDE8]">{value}</p>
                       <p className="text-[11px] text-[#9B9590]">{label}</p>
                     </div>
                   ))}
@@ -594,7 +594,7 @@ export default function SettingsPage() {
               <SectionCard title="Exporter" icon={Download}>
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-sm font-medium text-[#1A1A1A]">Exporter toutes les notes</p>
+                    <p className="text-sm font-medium text-[#1A1A1A] dark:text-[#F0EDE8]">Exporter toutes les notes</p>
                     <p className="text-xs text-[#9B9590] mt-0.5">
                       Télécharge un fichier JSON de toutes tes notes comme sauvegarde personnelle.
                     </p>

@@ -6,7 +6,7 @@ export function Skeleton({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        'animate-pulse rounded-xl bg-[#EDEBE7]',
+        'animate-pulse rounded-xl bg-[#EDEBE7] dark:bg-[#2E2C28]',
         className
       )}
     />
@@ -17,7 +17,7 @@ export function Skeleton({ className }: { className?: string }) {
 
 export function NoteCardSkeleton({ tall = false }: { tall?: boolean }) {
   return (
-    <div className={cn('bg-white rounded-2xl border border-[#E8E4DF] p-4 space-y-3', tall ? 'h-52' : 'h-36')}>
+    <div className={cn('bg-white dark:bg-[#1C1B19] rounded-2xl border border-[#E8E4DF] dark:border-[#2E2C28] p-4 space-y-3', tall ? 'h-52' : 'h-36')}>
       <div className="flex items-center justify-between">
         <Skeleton className="h-4 w-16 rounded-full" />
         <Skeleton className="h-3 w-10" />
@@ -40,7 +40,7 @@ export function JournalSkeleton() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-[#FAF8F5]/90 backdrop-blur-md border-b border-[#E8E4DF] px-5 md:px-8 py-4">
+      <div className="sticky top-0 z-10 bg-[#FAF8F5]/90 dark:bg-[#111110]/90 backdrop-blur-md border-b border-[#E8E4DF] dark:border-[#2E2C28] px-5 md:px-8 py-4">
         <div className="flex items-center justify-between mb-4">
           <div className="space-y-2">
             <Skeleton className="h-7 w-32" />
@@ -54,7 +54,7 @@ export function JournalSkeleton() {
       <div className="px-5 md:px-8 pt-5">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-2xl p-4 border border-[#E8E4DF] space-y-2">
+            <div key={i} className="bg-white dark:bg-[#1C1B19] rounded-2xl p-4 border border-[#E8E4DF] dark:border-[#2E2C28] space-y-2">
               <Skeleton className="h-8 w-8 rounded-xl" />
               <Skeleton className="h-6 w-12" />
               <Skeleton className="h-3 w-20" />
@@ -80,7 +80,7 @@ export function TutorSkeleton() {
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar sessions */}
-      <div className="hidden md:flex flex-col w-64 border-r border-[#E8E4DF] bg-white p-4 space-y-3 flex-shrink-0">
+      <div className="hidden md:flex flex-col w-64 border-r border-[#E8E4DF] dark:border-[#2E2C28] bg-white dark:bg-[#1C1B19] p-4 space-y-3 flex-shrink-0">
         <Skeleton className="h-5 w-24 mb-2" />
         {Array.from({ length: 6 }).map((_, i) => (
           <Skeleton key={i} className="h-10 w-full rounded-xl" />
@@ -89,7 +89,7 @@ export function TutorSkeleton() {
       {/* Zone chat */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-[#E8E4DF]">
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-[#E8E4DF] dark:border-[#2E2C28]">
           <Skeleton className="h-6 w-40" />
         </div>
         {/* Messages */}
@@ -121,7 +121,7 @@ export function TutorSkeleton() {
           </div>
         </div>
         {/* Input */}
-        <div className="px-5 py-4 border-t border-[#E8E4DF]">
+        <div className="px-5 py-4 border-t border-[#E8E4DF] dark:border-[#2E2C28]">
           <Skeleton className="h-12 w-full rounded-2xl" />
         </div>
       </div>
@@ -135,7 +135,7 @@ export function GraphSkeleton() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="px-5 md:px-8 py-4 border-b border-[#E8E4DF] flex items-center justify-between">
+      <div className="px-5 md:px-8 py-4 border-b border-[#E8E4DF] dark:border-[#2E2C28] flex items-center justify-between">
         <div className="space-y-2">
           <Skeleton className="h-7 w-40" />
           <Skeleton className="h-3 w-32" />
@@ -143,7 +143,7 @@ export function GraphSkeleton() {
         <Skeleton className="h-9 w-24 rounded-xl" />
       </div>
       {/* Canvas zone */}
-      <div className="flex-1 relative overflow-hidden bg-[#FAF8F5]">
+      <div className="flex-1 relative overflow-hidden bg-[#FAF8F5] dark:bg-[#111110]">
         {/* Nœuds simulés */}
         {[
           { top: '30%', left: '45%', size: 48 },
@@ -188,8 +188,8 @@ export function SettingsSkeleton() {
       <Skeleton className="h-10 w-full rounded-2xl mb-6" />
       {/* Cards */}
       {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="bg-white rounded-2xl border border-[#E8E4DF] overflow-hidden mb-4">
-          <div className="flex items-center gap-3 px-5 py-4 border-b border-[#E8E4DF]">
+        <div key={i} className="bg-white dark:bg-[#1C1B19] rounded-2xl border border-[#E8E4DF] dark:border-[#2E2C28] overflow-hidden mb-4">
+          <div className="flex items-center gap-3 px-5 py-4 border-b border-[#E8E4DF] dark:border-[#2E2C28]">
             <Skeleton className="w-8 h-8 rounded-xl" />
             <Skeleton className="h-4 w-28" />
           </div>

@@ -68,7 +68,7 @@ function NodePanel({
       className="flex flex-col h-full"
     >
       {/* En-tête nœud */}
-      <div className="px-4 py-3 border-b border-[#E8E4DF] flex-shrink-0">
+      <div className="px-4 py-3 border-b border-[#E8E4DF] dark:border-[#2E2C28] flex-shrink-0">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             {subjectCfg && (
@@ -80,50 +80,50 @@ function NodePanel({
               </div>
             )}
             {nodeType === 'concept' && (
-              <div className="w-8 h-8 rounded-xl bg-[#F5F3EF] flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-[#F5F3EF] dark:bg-[#242320] flex items-center justify-center flex-shrink-0">
                 <Hash size={14} className="text-[#9B9590]" />
               </div>
             )}
             {nodeType === 'note' && (
-              <div className="w-8 h-8 rounded-xl bg-[#F5F3EF] flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-[#F5F3EF] dark:bg-[#242320] flex items-center justify-center flex-shrink-0">
                 <FileText size={14} className="text-[#9B9590]" />
               </div>
             )}
             <div className="min-w-0">
-              <p className="text-xs font-bold text-[#1A1A1A] truncate leading-tight">{nodeLabel}</p>
+              <p className="text-xs font-bold text-[#1A1A1A] dark:text-[#F0EDE8] truncate leading-tight">{nodeLabel}</p>
               <p className="text-[10px] text-[#9B9590] capitalize">{
                 nodeType === 'subject' ? 'Matière' :
                 nodeType === 'concept' ? 'Concept / Tag' : 'Note'
               }</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-[#F5F3EF] text-[#9B9590] flex-shrink-0">
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-[#F5F3EF] dark:hover:bg-[#242320] text-[#9B9590] flex-shrink-0">
             <X size={13} />
           </button>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="px-4 py-3 border-b border-[#E8E4DF] flex-shrink-0">
+      <div className="px-4 py-3 border-b border-[#E8E4DF] dark:border-[#2E2C28] flex-shrink-0">
         <div className="grid grid-cols-2 gap-2">
-          <div className="bg-[#F5F3EF] rounded-xl p-2.5">
-            <p className="text-base font-bold text-[#1A1A1A]">{relatedNotes.length}</p>
+          <div className="bg-[#F5F3EF] dark:bg-[#242320] rounded-xl p-2.5">
+            <p className="text-base font-bold text-[#1A1A1A] dark:text-[#F0EDE8]">{relatedNotes.length}</p>
             <p className="text-[10px] text-[#9B9590]">note{relatedNotes.length > 1 ? 's' : ''}</p>
           </div>
-          <div className="bg-[#F5F3EF] rounded-xl p-2.5">
-            <p className="text-base font-bold text-[#1A1A1A]">
+          <div className="bg-[#F5F3EF] dark:bg-[#242320] rounded-xl p-2.5">
+            <p className="text-base font-bold text-[#1A1A1A] dark:text-[#F0EDE8]">
               {totalWords > 999 ? `${(totalWords / 1000).toFixed(1)}k` : totalWords}
             </p>
             <p className="text-[10px] text-[#9B9590]">mots</p>
           </div>
           {avgReadTime > 0 && (
-            <div className="bg-[#F5F3EF] rounded-xl p-2.5">
-              <p className="text-base font-bold text-[#1A1A1A]">{avgReadTime} min</p>
+            <div className="bg-[#F5F3EF] dark:bg-[#242320] rounded-xl p-2.5">
+              <p className="text-base font-bold text-[#1A1A1A] dark:text-[#F0EDE8]">{avgReadTime} min</p>
               <p className="text-[10px] text-[#9B9590]">lecture moy.</p>
             </div>
           )}
           {dominantMood && MOOD_CONFIG[dominantMood] && (
-            <div className="bg-[#F5F3EF] rounded-xl p-2.5">
+            <div className="bg-[#F5F3EF] dark:bg-[#242320] rounded-xl p-2.5">
               <p className="text-base">{MOOD_CONFIG[dominantMood].emoji}</p>
               <p className="text-[10px] text-[#9B9590]">{MOOD_CONFIG[dominantMood].label}</p>
             </div>
@@ -139,7 +139,7 @@ function NodePanel({
       </div>
 
       {/* Actions */}
-      <div className="px-4 py-3 space-y-2 flex-shrink-0 border-b border-[#E8E4DF]">
+      <div className="px-4 py-3 space-y-2 flex-shrink-0 border-b border-[#E8E4DF] dark:border-[#2E2C28]">
         {displaySubject && (
           <button
             onClick={() => onAskTutor(displaySubject)}
@@ -152,7 +152,7 @@ function NodePanel({
         {nodeType === 'subject' && (
           <button
             onClick={() => onCreateNote(nodeId)}
-            className="w-full flex items-center gap-2 px-3 py-2.5 bg-white border border-[#E8E4DF] text-[#1A1A1A] rounded-xl text-xs font-medium hover:bg-[#F5F3EF] active:scale-[0.98] transition-all"
+            className="w-full flex items-center gap-2 px-3 py-2.5 bg-white dark:bg-[#242320] border border-[#E8E4DF] dark:border-[#2E2C28] text-[#1A1A1A] dark:text-[#F0EDE8] rounded-xl text-xs font-medium hover:bg-[#F5F3EF] dark:hover:bg-[#2E2C28] active:scale-[0.98] transition-all"
           >
             <Plus size={13} />
             Ajouter une note ici
@@ -193,20 +193,20 @@ function OverviewPanel({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-4 py-3 border-b border-[#E8E4DF] flex-shrink-0">
+      <div className="px-4 py-3 border-b border-[#E8E4DF] dark:border-[#2E2C28] flex-shrink-0">
         <p className="text-xs font-semibold text-[#9B9590] uppercase tracking-wider">Vue d'ensemble</p>
       </div>
 
       {/* Stats globales */}
-      <div className="px-4 py-3 border-b border-[#E8E4DF] flex-shrink-0">
+      <div className="px-4 py-3 border-b border-[#E8E4DF] dark:border-[#2E2C28] flex-shrink-0">
         <div className="grid grid-cols-3 gap-2">
           {[
             { label: 'Notes',    value: notes.length,   icon: FileText  },
             { label: 'Matières', value: Object.keys(subjectCounts).length, icon: BookOpen },
             { label: 'Tags',     value: totalTags,       icon: Hash      },
           ].map(({ label, value, icon: Icon }) => (
-            <div key={label} className="bg-[#F5F3EF] rounded-xl p-2.5 text-center">
-              <p className="text-base font-bold text-[#1A1A1A]">{value}</p>
+            <div key={label} className="bg-[#F5F3EF] dark:bg-[#242320] rounded-xl p-2.5 text-center">
+              <p className="text-base font-bold text-[#1A1A1A] dark:text-[#F0EDE8]">{value}</p>
               <p className="text-[10px] text-[#9B9590]">{label}</p>
             </div>
           ))}
@@ -232,16 +232,16 @@ function OverviewPanel({
               <button
                 key={subject}
                 onClick={() => onSelectSubject(subject)}
-                className="w-full flex items-center gap-3 px-3 py-2.5 bg-[#FAF8F5] rounded-xl hover:bg-white hover:border-[#F4A236] border border-transparent transition-all text-left"
+                className="w-full flex items-center gap-3 px-3 py-2.5 bg-[#FAF8F5] dark:bg-[#1C1B19] rounded-xl hover:bg-white dark:hover:bg-[#242320] hover:border-[#F4A236] border border-transparent dark:border-[#2E2C28] transition-all text-left"
               >
                 <span className="text-base flex-shrink-0">{config.emoji}</span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-medium text-[#1A1A1A] truncate">{subject}</span>
+                    <span className="text-xs font-medium text-[#1A1A1A] dark:text-[#F0EDE8] truncate">{subject}</span>
                     <span className="text-[10px] font-semibold text-[#9B9590] flex-shrink-0">{count}</span>
                   </div>
                   {/* Barre de progression */}
-                  <div className="mt-1 h-1 bg-[#E8E4DF] rounded-full overflow-hidden">
+                  <div className="mt-1 h-1 bg-[#E8E4DF] dark:bg-[#2E2C28] rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all"
                       style={{ width: `${pct}%`, background: config.color }}
@@ -305,10 +305,10 @@ export default function GraphPage() {
       <div className="flex flex-col h-screen overflow-hidden">
 
         {/* Header */}
-        <div className="px-5 md:px-8 py-4 border-b border-[#E8E4DF] bg-[#FAF8F5] flex-shrink-0">
+        <div className="px-5 md:px-8 py-4 border-b border-[#E8E4DF] dark:border-[#2E2C28] bg-[#FAF8F5] dark:bg-[#111110] flex-shrink-0">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div>
-              <h1 className="text-2xl font-bold text-[#1A1A1A] flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-[#1A1A1A] dark:text-[#F0EDE8] flex items-center gap-2">
                 <Network size={22} className="text-[#F4A236]" />
                 Carte des connaissances
               </h1>
@@ -319,7 +319,7 @@ export default function GraphPage() {
 
             <div className="flex items-center gap-2 flex-wrap">
               {/* Légende nœuds */}
-              <div className="hidden sm:flex items-center gap-3 bg-white rounded-xl px-3 py-2 border border-[#E8E4DF] text-xs text-[#9B9590]">
+              <div className="hidden sm:flex items-center gap-3 bg-white dark:bg-[#1C1B19] rounded-xl px-3 py-2 border border-[#E8E4DF] dark:border-[#2E2C28] text-xs text-[#9B9590]">
                 <span className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#F4A236]" /> Matières
                 </span>
@@ -335,7 +335,7 @@ export default function GraphPage() {
               </div>
 
               {/* Légende maîtrise */}
-              <div className="hidden md:flex items-center gap-2 bg-white rounded-xl px-3 py-2 border border-[#E8E4DF] text-xs text-[#9B9590]">
+              <div className="hidden md:flex items-center gap-2 bg-white dark:bg-[#1C1B19] rounded-xl px-3 py-2 border border-[#E8E4DF] dark:border-[#2E2C28] text-xs text-[#9B9590]">
                 <span className="text-[10px] font-semibold uppercase tracking-wider mr-1">Maîtrise</span>
                 <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-[#22C55E]" /> OK</span>
                 <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" /> Fragile</span>
@@ -348,8 +348,8 @@ export default function GraphPage() {
                 className={cn(
                   'flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-medium transition-all',
                   showAllNotes
-                    ? 'bg-[#1A1A1A] text-white border-[#1A1A1A]'
-                    : 'bg-white text-[#9B9590] border-[#E8E4DF] hover:border-[#1A1A1A]'
+                    ? 'bg-[#1A1A1A] dark:bg-[#F0EDE8] text-white dark:text-[#1A1A1A] border-[#1A1A1A] dark:border-[#F0EDE8]'
+                    : 'bg-white dark:bg-[#242320] text-[#9B9590] border-[#E8E4DF] dark:border-[#2E2C28] hover:border-[#1A1A1A] dark:hover:border-[#F0EDE8]'
                 )}
               >
                 {showAllNotes ? <Eye size={13} /> : <EyeOff size={13} />}
@@ -362,13 +362,13 @@ export default function GraphPage() {
         <div className="flex flex-1 overflow-hidden">
 
           {/* Canvas graphe */}
-          <div className="flex-1 relative bg-[#FAFAFA] min-w-0">
+          <div className="flex-1 relative bg-[#FAFAFA] dark:bg-[#111110] min-w-0">
             {notes.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center px-8">
-                <div className="w-16 h-16 rounded-3xl bg-[#F5F3EF] flex items-center justify-center mb-4">
+                <div className="w-16 h-16 rounded-3xl bg-[#F5F3EF] dark:bg-[#242320] flex items-center justify-center mb-4">
                   <Network size={24} className="text-[#C8C4BE]" />
                 </div>
-                <h3 className="text-[#1A1A1A] font-semibold mb-1">Aucune carte pour l'instant</h3>
+                <h3 className="text-[#1A1A1A] dark:text-[#F0EDE8] font-semibold mb-1">Aucune carte pour l'instant</h3>
                 <p className="text-[#9B9590] text-sm max-w-xs">
                   Ajoute des notes avec des matières et des tags pour voir ta carte des connaissances se construire.
                 </p>
@@ -395,14 +395,14 @@ export default function GraphPage() {
             )}
 
             {/* Hint bas */}
-            <div className="absolute bottom-4 left-4 flex items-center gap-1.5 text-[10px] text-[#9B9590] bg-white/80 backdrop-blur-sm rounded-xl px-2.5 py-1.5 border border-[#E8E4DF]">
+            <div className="absolute bottom-4 left-4 flex items-center gap-1.5 text-[10px] text-[#9B9590] bg-white/80 dark:bg-[#1C1B19]/80 backdrop-blur-sm rounded-xl px-2.5 py-1.5 border border-[#E8E4DF] dark:border-[#2E2C28]">
               <Info size={10} />
               Clique sur un nœud · Glisse pour déplacer · Molette pour zoomer
             </div>
           </div>
 
           {/* Panel latéral */}
-          <div className="hidden lg:flex flex-col w-72 border-l border-[#E8E4DF] bg-white overflow-hidden">
+          <div className="hidden lg:flex flex-col w-72 border-l border-[#E8E4DF] dark:border-[#2E2C28] bg-white dark:bg-[#1C1B19] overflow-hidden">
             <AnimatePresence mode="wait">
               {selectedNode ? (
                 <NodePanel

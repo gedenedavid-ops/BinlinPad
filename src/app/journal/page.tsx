@@ -87,7 +87,7 @@ export default function JournalPage() {
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9B9590] hover:text-[#1A1A1A]"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9B9590] hover:text-[#1A1A1A] dark:hover:text-[#F0EDE8]"
                 >
                   <X size={14} />
                 </button>
@@ -99,14 +99,14 @@ export default function JournalPage() {
                 'flex items-center gap-1.5 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all',
                 (showFilters || filterSubject || filterMood)
                   ? 'bg-[#F4A236] text-white border-[#F4A236]'
-                  : 'bg-white text-[#9B9590] border-[#E8E4DF] hover:border-[#F4A236] hover:text-[#F4A236]'
+                  : 'bg-white dark:bg-[#242320] text-[#9B9590] border-[#E8E4DF] dark:border-[#2E2C28] hover:border-[#F4A236] hover:text-[#F4A236]'
               )}
             >
               <SlidersHorizontal size={15} />
               <span className="hidden sm:inline">Filtrer</span>
             </button>
             {/* Layout switcher */}
-            <div className="hidden sm:flex items-center gap-1 bg-white border border-[#E8E4DF] rounded-xl p-1">
+            <div className="hidden sm:flex items-center gap-1 bg-white dark:bg-[#242320] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-xl p-1">
               {(['masonry', 'grid', 'list'] as NoteLayout[]).map((layout) => {
                 const Icon = LAYOUT_ICONS[layout];
                 return (
@@ -116,7 +116,7 @@ export default function JournalPage() {
                     className={cn(
                       'p-1.5 rounded-lg transition-all',
                       prefs.noteLayout === layout
-                        ? 'bg-[#F5F3EF] text-[#1A1A1A]'
+                        ? 'bg-[#F5F3EF] dark:bg-[#2E2C28] text-[#1A1A1A] dark:text-[#F0EDE8]'
                         : 'text-[#C8C4BE] hover:text-[#9B9590]'
                     )}
                     title={layout === 'masonry' ? 'Mosaïque' : layout === 'grid' ? 'Grille' : 'Liste'}
@@ -149,8 +149,8 @@ export default function JournalPage() {
                           className={cn(
                             'flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all',
                             filterSubject === s
-                              ? 'bg-[#1A1A1A] text-white'
-                              : 'bg-white border border-[#E8E4DF] text-[#9B9590] hover:border-[#1A1A1A] hover:text-[#1A1A1A]'
+                              ? 'bg-[#1A1A1A] dark:bg-[#F0EDE8] text-white dark:text-[#1A1A1A]'
+                              : 'bg-white dark:bg-[#242320] border border-[#E8E4DF] dark:border-[#2E2C28] text-[#9B9590] hover:border-[#1A1A1A] dark:hover:border-[#F0EDE8] hover:text-[#1A1A1A] dark:hover:text-[#F0EDE8]'
                           )}
                         >
                           {SUBJECT_CONFIG[s].emoji} {s}
@@ -169,8 +169,8 @@ export default function JournalPage() {
                           className={cn(
                             'flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all',
                             filterMood === m
-                              ? 'bg-[#1A1A1A] text-white'
-                              : 'bg-white border border-[#E8E4DF] text-[#9B9590] hover:border-[#1A1A1A]'
+                              ? 'bg-[#1A1A1A] dark:bg-[#F0EDE8] text-white dark:text-[#1A1A1A]'
+                              : 'bg-white dark:bg-[#242320] border border-[#E8E4DF] dark:border-[#2E2C28] text-[#9B9590] hover:border-[#1A1A1A] dark:hover:border-[#F0EDE8]'
                           )}
                         >
                           {MOOD_CONFIG[m].emoji} {MOOD_CONFIG[m].label}
@@ -215,14 +215,14 @@ export default function JournalPage() {
                 key={label}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-2xl p-4 border border-[#E8E4DF]"
+                className="bg-white dark:bg-[#1C1B19] rounded-2xl p-4 border border-[#E8E4DF] dark:border-[#2E2C28]"
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: bg }}>
                     <Icon size={15} style={{ color }} />
                   </div>
                 </div>
-                <p className="text-xl font-bold text-[#1A1A1A]">{value}</p>
+                <p className="text-xl font-bold text-[#1A1A1A] dark:text-[#F0EDE8]">{value}</p>
                 <p className="text-[11px] text-[#9B9590] mt-0.5">{label}</p>
               </motion.div>
             ))}
@@ -240,10 +240,10 @@ export default function JournalPage() {
           </div>
         ) : filteredNotes.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-16 h-16 rounded-3xl bg-[#F5F3EF] flex items-center justify-center mb-4">
+            <div className="w-16 h-16 rounded-3xl bg-[#F5F3EF] dark:bg-[#242320] flex items-center justify-center mb-4">
               <BookOpen size={24} className="text-[#C8C4BE]" />
             </div>
-            <h3 className="text-[#1A1A1A] font-semibold mb-1">
+            <h3 className="text-[#1A1A1A] dark:text-[#F0EDE8] font-semibold mb-1">
               {hasFilters ? 'Aucune note ne correspond' : 'Aucune note pour l\'instant'}
             </h3>
             <p className="text-[#9B9590] text-sm max-w-xs">
@@ -307,9 +307,9 @@ export default function JournalPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: 8 }}
               transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-              className="relative w-full max-w-2xl max-h-[85vh] bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col"
+              className="relative w-full max-w-2xl max-h-[85vh] bg-white dark:bg-[#1C1B19] rounded-3xl shadow-xl overflow-hidden flex flex-col"
             >
-              <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-[#E8E4DF]">
+              <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-[#E8E4DF] dark:border-[#2E2C28]">
                 <div className="flex items-center gap-2">
                   <span className="text-lg">{SUBJECT_CONFIG[viewNote.subject].emoji}</span>
                   <span className="text-xs font-medium text-[#9B9590]">{viewNote.subject}</span>
@@ -319,18 +319,18 @@ export default function JournalPage() {
                   <Button variant="secondary" size="sm" onClick={() => { setViewNote(null); useStore.getState().openEditor(viewNote.id); }}>
                     Edit
                   </Button>
-                  <button onClick={() => setViewNote(null)} className="p-1.5 rounded-xl hover:bg-[#F5F3EF] text-[#9B9590]">
+                  <button onClick={() => setViewNote(null)} className="p-1.5 rounded-xl hover:bg-[#F5F3EF] dark:hover:bg-[#242320] text-[#9B9590]">
                     <X size={16} />
                   </button>
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto px-6 py-4">
-                <h2 className="text-xl font-bold text-[#1A1A1A] mb-3">{viewNote.title}</h2>
-                <p className="text-sm text-[#1A1A1A] leading-relaxed whitespace-pre-wrap note-content">{viewNote.content}</p>
+                <h2 className="text-xl font-bold text-[#1A1A1A] dark:text-[#F0EDE8] mb-3">{viewNote.title}</h2>
+                <p className="text-sm text-[#1A1A1A] dark:text-[#F0EDE8] leading-relaxed whitespace-pre-wrap note-content">{viewNote.content}</p>
                 {viewNote.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-4">
                     {viewNote.tags.map((tag) => (
-                      <span key={tag.id} className="text-xs px-2.5 py-1 bg-[#F5F3EF] text-[#9B9590] rounded-full">
+                      <span key={tag.id} className="text-xs px-2.5 py-1 bg-[#F5F3EF] dark:bg-[#242320] text-[#9B9590] rounded-full">
                         #{tag.label}
                       </span>
                     ))}

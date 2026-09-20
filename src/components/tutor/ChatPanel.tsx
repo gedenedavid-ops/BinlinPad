@@ -91,7 +91,7 @@ function MessageBubble({
       {/* Bubble */}
       <div className={cn('max-w-[80%] space-y-1', isUser ? 'items-end' : 'items-start', 'flex flex-col')}>
         {message.isLoading ? (
-          <div className="bg-[#F5F3EF] rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-2">
+          <div className="bg-[#F5F3EF] dark:bg-[#242320] rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-2">
             <Loader2 size={14} className="text-[#9B9590] animate-spin" />
             <span className="text-sm text-[#9B9590]">En train de réfléchir…</span>
           </div>
@@ -100,7 +100,7 @@ function MessageBubble({
             'px-4 py-3 rounded-2xl text-sm',
             isUser
               ? 'bg-[#1A1A1A] text-white rounded-tr-sm leading-relaxed whitespace-pre-wrap'
-              : 'bg-[#F5F3EF] text-[#1A1A1A] rounded-tl-sm space-y-0.5'
+              : 'bg-[#F5F3EF] dark:bg-[#242320] text-[#1A1A1A] dark:text-[#F0EDE8] rounded-tl-sm space-y-0.5'
           )}>
             {isUser ? message.content : renderMarkdown(message.content)}
 
@@ -120,7 +120,7 @@ function MessageBubble({
             {message.sources.slice(0, 3).map((src) => (
               <span
                 key={src.noteId}
-                className="flex items-center gap-1 text-[10px] px-2 py-0.5 bg-white border border-[#E8E4DF] rounded-full text-[#9B9590]"
+                className="flex items-center gap-1 text-[10px] px-2 py-0.5 bg-white dark:bg-[#242320] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-full text-[#9B9590]"
               >
                 <BookOpen size={9} />
                 {src.title}
@@ -248,7 +248,7 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
                       'flex-1 text-left px-3 py-2 rounded-xl text-xs transition-colors',
                       activeSession?.id === sess.id
                         ? 'bg-[#FDF0DC] dark:bg-[#F4A236]/10 text-[#F4A236]'
-                        : 'hover:bg-[#F5F3EF] text-[#1A1A1A]'
+                        : 'hover:bg-[#F5F3EF] dark:hover:bg-[#242320] text-[#1A1A1A] dark:text-[#F0EDE8]'
                     )}
                   >
                     <span className="font-medium truncate block">{sess.title || 'Nouvelle conversation'}</span>
@@ -298,7 +298,7 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
           </div>
         ) : !activeSession || activeSession.messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-4 py-8">
-            <h3 className="text-[#1A1A1A] font-semibold mb-1">Bonjour 👋</h3>
+            <h3 className="text-[#1A1A1A] dark:text-[#F0EDE8] font-semibold mb-1">Bonjour 👋</h3>
             <p className="text-[#9B9590] text-sm max-w-xs mb-6">
               Ton tuteur IA personnel. Pose-moi des questions sur tes notes, demande un quiz ou aide-toi à comprendre un concept.
             </p>
@@ -308,7 +308,7 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
                 <button
                   key={prompt}
                   onClick={() => handlePrompt(prompt)}
-                  className="w-full text-left px-3 py-2.5 bg-white border border-[#E8E4DF] rounded-xl text-sm text-[#1A1A1A] hover:border-[#F4A236] hover:bg-[#FDF0DC]/30 transition-all"
+                  className="w-full text-left px-3 py-2.5 bg-white dark:bg-[#242320] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-xl text-sm text-[#1A1A1A] dark:text-[#F0EDE8] hover:border-[#F4A236] hover:bg-[#FDF0DC]/30 dark:hover:bg-[#2A1F0A]/30 transition-all"
                 >
                   {prompt}
                 </button>
@@ -330,7 +330,7 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
               <motion.div
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mx-2 mt-2 bg-[#FDF0DC]/60 border border-[#F4A236]/30 rounded-2xl overflow-hidden"
+                className="mx-2 mt-2 bg-[#FDF0DC]/60 dark:bg-[#2A1F0A]/40 border border-[#F4A236]/30 rounded-2xl overflow-hidden"
               >
                 <button
                   onClick={() => setShowSummary(!showSummary)}
@@ -349,7 +349,7 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
                       exit={{ height: 0, opacity: 0 }}
                       className="overflow-hidden"
                     >
-                      <div className="px-4 pb-3 text-xs text-[#57514C] leading-relaxed space-y-0.5">
+                      <div className="px-4 pb-3 text-xs text-[#57514C] dark:text-[#9B9590] leading-relaxed space-y-0.5">
                         {renderMarkdown(activeSession.summary)}
                       </div>
                     </motion.div>
@@ -364,8 +364,8 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
       </div>
 
       {/* Input */}
-      <div className="px-4 py-4 border-t border-[#E8E4DF] flex-shrink-0">
-        <div className="flex items-end gap-2 bg-white border border-[#E8E4DF] rounded-2xl px-3 py-2.5 focus-within:border-[#F4A236] focus-within:ring-2 focus-within:ring-[#F4A236]/20 transition-all">
+      <div className="px-4 py-4 border-t border-[#E8E4DF] dark:border-[#2E2C28] flex-shrink-0">
+        <div className="flex items-end gap-2 bg-white dark:bg-[#242320] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-2xl px-3 py-2.5 focus-within:border-[#F4A236] focus-within:ring-2 focus-within:ring-[#F4A236]/20 transition-all">
           <textarea
             ref={inputRef}
             value={input}
@@ -373,7 +373,7 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
             onKeyDown={handleKeyDown}
             placeholder="Pose une question sur tes notes, demande un quiz…"
             rows={1}
-            className="flex-1 text-sm text-[#1A1A1A] placeholder-[#C8C4BE] bg-transparent resize-none max-h-32 leading-relaxed"
+            className="flex-1 text-sm text-[#1A1A1A] dark:text-[#F0EDE8] placeholder-[#C8C4BE] bg-transparent resize-none max-h-32 leading-relaxed"
             style={{ minHeight: '24px' }}
           />
           <button
@@ -408,7 +408,7 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
         </div>
 
         {/* Lien d'écoute permanent — toujours visible, jamais déclenché par l'app */}
-        <div className="mt-2 pt-2 border-t border-[#F0ECE8] flex items-center justify-center gap-1.5">
+        <div className="mt-2 pt-2 border-t border-[#F0ECE8] dark:border-[#2E2C28] flex items-center justify-center gap-1.5">
           <a
             href="tel:+22527222263"
             className="text-[9px] text-[#C8C4BE] hover:text-[#9B9590] transition-colors"

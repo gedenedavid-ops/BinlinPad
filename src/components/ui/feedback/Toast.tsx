@@ -35,15 +35,15 @@ export function ToastContainer() {
             exit={{ opacity: 0, x: 40, scale: 0.92 }}
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
             className={cn(
-              'pointer-events-auto flex items-center gap-3 bg-white border rounded-2xl px-4 py-3 shadow-lg min-w-[200px] max-w-[320px]',
+              'pointer-events-auto flex items-center gap-3 bg-white dark:bg-[#1C1B19] border rounded-2xl px-4 py-3 shadow-lg dark:shadow-black/40 min-w-[200px] max-w-[320px]',
               borders[toast.type]
             )}
           >
             {icons[toast.type]}
-            <span className="text-sm text-[#1A1A1A] flex-1 leading-snug">{toast.message}</span>
+            <span className="text-sm text-[#1A1A1A] dark:text-[#F0EDE8] flex-1 leading-snug">{toast.message}</span>
             <button
               onClick={() => removeToast(toast.id)}
-              className="text-[#9B9590] hover:text-[#1A1A1A] transition-colors"
+              className="text-[#9B9590] hover:text-[#1A1A1A] dark:hover:text-[#F0EDE8] transition-colors"
             >
               <X size={14} />
             </button>

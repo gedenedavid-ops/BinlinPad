@@ -12,9 +12,9 @@ const CONTACT_EMAIL = 'gedenedavid@gmail.com';
 
 export default function LegalPage() {
   return (
-    <div className="min-h-screen bg-[#FAF8F5]">
+    <div className="min-h-screen bg-[#FAF8F5] dark:bg-[#111110]">
       {/* Header */}
-      <div className="border-b border-[#E8E4DF] bg-white">
+      <div className="border-b border-[#E8E4DF] dark:border-[#2E2C28] bg-white dark:bg-[#1C1B19]">
         <div className="max-w-3xl mx-auto px-6 py-5 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 text-[#F4A236] font-bold text-lg">
             📚 BinlinPad
@@ -26,7 +26,7 @@ export default function LegalPage() {
       <div className="max-w-3xl mx-auto px-6 py-12 space-y-16">
 
         {/* Navigation interne */}
-        <div className="bg-white border border-[#E8E4DF] rounded-2xl p-5">
+        <div className="bg-white dark:bg-[#1C1B19] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-2xl p-5">
           <p className="text-xs font-semibold text-[#9B9590] uppercase tracking-wider mb-3">Sur cette page</p>
           <div className="grid grid-cols-2 gap-2 text-sm">
             {[
@@ -46,7 +46,7 @@ export default function LegalPage() {
 
         {/* ── CGU ─────────────────────────────────────────────────────────────── */}
         <section id="cgu" className="space-y-6">
-          <h1 className="text-2xl font-bold text-[#1A1A1A]">
+          <h1 className="text-2xl font-bold text-[#1A1A1A] dark:text-[#F0EDE8]">
             Conditions Générales d&apos;Utilisation
           </h1>
 
@@ -127,7 +127,7 @@ export default function LegalPage() {
 
         {/* ── Données personnelles ─────────────────────────────────────────────── */}
         <section id="donnees" className="space-y-6">
-          <h2 className="text-2xl font-bold text-[#1A1A1A]">
+          <h2 className="text-2xl font-bold text-[#1A1A1A] dark:text-[#F0EDE8]">
             Politique de Confidentialité
           </h2>
 
@@ -201,7 +201,7 @@ export default function LegalPage() {
 
         {/* ── IA ───────────────────────────────────────────────────────────────── */}
         <section id="ia" className="space-y-6">
-          <h2 className="text-2xl font-bold text-[#1A1A1A]">Utilisation de l&apos;Intelligence Artificielle</h2>
+          <h2 className="text-2xl font-bold text-[#1A1A1A] dark:text-[#F0EDE8]">Utilisation de l&apos;Intelligence Artificielle</h2>
 
           <Block title="11. Ce que l'IA voit et ne voit pas">
             <p>
@@ -256,7 +256,7 @@ export default function LegalPage() {
 
         {/* ── Droits ───────────────────────────────────────────────────────────── */}
         <section id="droits" className="space-y-6">
-          <h2 className="text-2xl font-bold text-[#1A1A1A]">Vos droits</h2>
+          <h2 className="text-2xl font-bold text-[#1A1A1A] dark:text-[#F0EDE8]">Vos droits</h2>
 
           <Block title="15. Droits sur vos données">
             <p>Conformément aux réglementations applicables, vous disposez des droits suivants :</p>
@@ -307,14 +307,14 @@ export default function LegalPage() {
 
         {/* ── Contact ──────────────────────────────────────────────────────────── */}
         <section id="contact" className="space-y-4">
-          <h2 className="text-2xl font-bold text-[#1A1A1A]">Contact</h2>
-          <div className="bg-white border border-[#E8E4DF] rounded-2xl p-6 space-y-2">
-            <p className="text-sm text-[#1A1A1A]"><strong>Éditeur :</strong> David Gedene</p>
-            <p className="text-sm text-[#1A1A1A]">
+          <h2 className="text-2xl font-bold text-[#1A1A1A] dark:text-[#F0EDE8]">Contact</h2>
+          <div className="bg-white dark:bg-[#1C1B19] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-2xl p-6 space-y-2">
+            <p className="text-sm text-[#1A1A1A] dark:text-[#F0EDE8]"><strong>Éditeur :</strong> David Gedene</p>
+            <p className="text-sm text-[#1A1A1A] dark:text-[#F0EDE8]">
               <strong>Email :</strong>{' '}
               <a href={`mailto:${CONTACT_EMAIL}`} className="text-[#F4A236] hover:underline">{CONTACT_EMAIL}</a>
             </p>
-            <p className="text-sm text-[#1A1A1A]">
+            <p className="text-sm text-[#1A1A1A] dark:text-[#F0EDE8]">
               <strong>Application :</strong>{' '}
               <a href={APP_URL} className="text-[#F4A236] hover:underline">{APP_URL}</a>
             </p>
@@ -326,7 +326,7 @@ export default function LegalPage() {
         <div className="text-center pb-8">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm text-[#9B9590] hover:text-[#1A1A1A] transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-[#9B9590] hover:text-[#1A1A1A] dark:hover:text-[#F0EDE8] transition-colors"
           >
             ← Retour à BinlinPad
           </Link>
@@ -341,9 +341,9 @@ export default function LegalPage() {
 
 function Block({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white border border-[#E8E4DF] rounded-2xl p-6 space-y-3">
-      <h3 className="font-semibold text-[#1A1A1A] text-base">{title}</h3>
-      <div className="text-sm text-[#57514C] leading-relaxed space-y-2 [&_ul]:list-none [&_ul]:space-y-1.5 [&_ul>li]:flex [&_ul>li]:gap-2 [&_ul>li]:before:content-['·'] [&_ul>li]:before:text-[#F4A236] [&_ul>li]:before:font-bold [&_table]:w-full [&_table]:text-xs [&_th]:text-left [&_th]:font-semibold [&_th]:text-[#9B9590] [&_th]:pb-2 [&_th]:border-b [&_th]:border-[#F5F3EF] [&_td]:py-1.5 [&_td]:pr-4 [&_td]:border-b [&_td]:border-[#F5F3EF] [&_td]:align-top">
+    <div className="bg-white dark:bg-[#1C1B19] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-2xl p-6 space-y-3">
+      <h3 className="font-semibold text-[#1A1A1A] dark:text-[#F0EDE8] text-base">{title}</h3>
+      <div className="text-sm text-[#57514C] dark:text-[#9B9590] leading-relaxed space-y-2 [&_ul]:list-none [&_ul]:space-y-1.5 [&_ul>li]:flex [&_ul>li]:gap-2 [&_ul>li]:before:content-['·'] [&_ul>li]:before:text-[#F4A236] [&_ul>li]:before:font-bold [&_table]:w-full [&_table]:text-xs [&_th]:text-left [&_th]:font-semibold [&_th]:text-[#9B9590] [&_th]:pb-2 [&_th]:border-b [&_th]:border-[#F5F3EF] dark:[&_th]:border-[#2E2C28] [&_td]:py-1.5 [&_td]:pr-4 [&_td]:border-b [&_td]:border-[#F5F3EF] dark:[&_td]:border-[#2E2C28] [&_td]:align-top">
         {children}
       </div>
     </div>
@@ -351,5 +351,5 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
 }
 
 function Divider() {
-  return <hr className="border-[#E8E4DF]" />;
+  return <hr className="border-[#E8E4DF] dark:border-[#2E2C28]" />;
 }
