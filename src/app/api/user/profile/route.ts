@@ -12,7 +12,14 @@ const ProfilePatchSchema = z.object({
   onboardingDone: z.boolean().optional(),
   schoolLevel:    z.string().max(100).optional(),
   studentField:   z.string().max(200).optional(),
-  customSubjects: z.array(z.string().max(100)).max(50).optional(),
+  customSubjects: z.array(
+    z.object({
+      id: z.string().max(100),
+      label: z.string().max(100),
+      emoji: z.string().max(10),
+      color: z.string().max(20)
+    })
+  ).max(50).optional(),
   studiedTopics:  z.union([
     z.string().max(200),
     z.array(z.string().max(200)).max(100),
