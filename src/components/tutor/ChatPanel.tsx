@@ -293,7 +293,7 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
                 <button
                   key={prompt}
                   onClick={() => handlePrompt(prompt)}
-                  className="w-full text-left px-3 py-2.5 bg-white dark:bg-[#242320] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-xl text-sm text-[#1A1A1A] dark:text-[#F0EDE8] hover:border-[#F4A236] hover:bg-[#FDF0DC]/30 dark:hover:bg-[#2A1F0A]/30 transition-all"
+                  className="w-full text-left px-3 py-2.5 bg-white dark:bg-[#242320] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-xl text-sm text-[#1A1A1A] dark:text-[#F0EDE8] hover:border-[#F4A236] hover:bg-[#FDF0DC]/30 dark:hover:bg-[#2A1F0A]/30 transition-[color,background-color,border-color,box-shadow,transform]"
                 >
                   {prompt}
                 </button>
