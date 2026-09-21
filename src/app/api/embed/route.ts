@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
+import { z } from 'zod';
+
+const EmbedSchema = z.object({
+  text: z.string().min(1, 'Texte requis').max(50_000, 'Texte trop long (max 50 000 caractères)'),
+});
 
 const VOYAGE_API_URL = 'https://api.voyageai.com/v1/embeddings';
 
@@ -10,14 +15,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { text } = await request.json();
-
-    if (typeof text !== 'string' || !text.trim()) {
-      return NextResponse.json({ error: 'Texte requis' }, { status: 400 });
+    const parsed = EmbedSchema.safeParse(await request.json());
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.flatten().fieldErrors.text?.[0] ?? 'Texte invalide' }, { status: 400 });
     }
-    if (text.length > 50_000) {
-      return NextResponse.json({ error: 'Texte trop long' }, { status: 413 });
-    }
+    const { text } = parsed.data;
 
     const apiKey = process.env.VOYAGE_API_KEY;
     if (!apiKey) {

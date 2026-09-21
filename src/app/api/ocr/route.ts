@@ -1,5 +1,17 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
+import { z } from 'zod';
+
+const OcrSchema = z.object({
+  imageBase64: z
+    .string()
+    .min(1, 'imageBase64 requis')
+    .max(7_500_000, 'Image trop grande (max ~5.5 Mo en base64)'),
+  mimeType: z
+    .enum(['image/jpeg', 'image/png', 'image/webp'])
+    .optional()
+    .default('image/jpeg'),
+});
 
 // Gemini 2.0 Flash — rapide, multimodal, gratuit jusqu'à 1500 req/jour
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
@@ -30,17 +42,12 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    imageBase64 = body.imageBase64;
-    mimeType    = body.mimeType ?? 'image/jpeg';
-
-    if (!imageBase64) {
-      return NextResponse.json({ error: 'imageBase64 requis' }, { status: 400 });
+    const parsed = OcrSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Données invalides', details: parsed.error.flatten() }, { status: 400 });
     }
-
-    // Taille max : ~4 Mo en base64 ≈ ~3 Mo en binaire
-    if (imageBase64.length > 5_500_000) {
-      return NextResponse.json({ error: 'Image trop grande (max ~4 Mo)' }, { status: 413 });
-    }
+    imageBase64 = parsed.data.imageBase64;
+    mimeType    = parsed.data.mimeType;
   } catch {
     return NextResponse.json({ error: 'Corps invalide' }, { status: 400 });
   }

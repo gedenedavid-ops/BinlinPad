@@ -60,7 +60,7 @@ export async function GET(request: Request) {
     if (!res.ok) {
       const err = await res.text();
       console.error('Purge Qdrant error:', err);
-      return NextResponse.json({ success: false, error: err }, { status: 502 });
+      return NextResponse.json({ success: false, error: 'Erreur de suppression Qdrant' }, { status: 502 });
     }
 
     const data = await res.json();

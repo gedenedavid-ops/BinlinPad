@@ -1,10 +1,24 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
+import { z } from 'zod';
 
 const QDRANT_URL       = process.env.QDRANT_URL ?? 'http://localhost:6333';
 const QDRANT_API_KEY   = process.env.QDRANT_API_KEY;
 const NOTES_COLL       = process.env.QDRANT_COLLECTION ?? 'binlinpad_notes';
 const VOYAGE_API_URL   = 'https://api.voyageai.com/v1/embeddings';
+
+// ─── Schémas Zod ────────────────────────────────────────────────────────────────────
+const ChatHistoryPostSchema = z.object({
+  sessionId:        z.string().uuid('sessionId doit être un UUID').or(z.string().min(1).max(100)),
+  exchangeId:       z.string().uuid('exchangeId doit être un UUID'),
+  userMessage:      z.string().min(1).max(10_000),
+  assistantMessage: z.string().min(1).max(20_000),
+  timestamp:        z.string().datetime().optional(),
+});
+
+const ChatHistoryDeleteSchema = z.object({
+  sessionId: z.string().min(1).max(100),
+});
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -50,11 +64,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { sessionId, exchangeId, userMessage, assistantMessage, timestamp } = await request.json();
-
-    if (!sessionId || !exchangeId || !userMessage || !assistantMessage) {
-      return NextResponse.json({ error: 'Paramètres manquants' }, { status: 400 });
+    const raw = await request.json();
+    const parsed = ChatHistoryPostSchema.safeParse(raw);
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Données invalides', details: parsed.error.flatten() }, { status: 400 });
     }
+    const { sessionId, exchangeId, userMessage, assistantMessage, timestamp } = parsed.data;
 
     // ── Vérification du plafond par utilisateur ───────────────────────────
     // On compte les points existants pour cet utilisateur (type=chat)
@@ -213,11 +228,12 @@ export async function DELETE(request: Request) {
   }
 
   try {
-    const { sessionId } = await request.json();
-
-    if (!sessionId) {
-      return NextResponse.json({ error: 'sessionId requis' }, { status: 400 });
+    const raw = await request.json();
+    const parsed = ChatHistoryDeleteSchema.safeParse(raw);
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'sessionId invalide', details: parsed.error.flatten() }, { status: 400 });
     }
+    const { sessionId } = parsed.data;
 
     const res = await fetch(
       `${QDRANT_URL}/collections/${NOTES_COLL}/points/delete`,

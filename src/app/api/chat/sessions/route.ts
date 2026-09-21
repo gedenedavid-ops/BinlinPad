@@ -3,6 +3,19 @@ import { auth } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import { ChatSessionModel } from '@/models/ChatSession';
 import { User } from '@/models/User';
+import { z } from 'zod';
+
+// ─── Schémas Zod ────────────────────────────────────────────────────────────────────
+const SessionPostSchema = z.object({
+  sessionId: z.string().regex(/^[0-9a-f]{24}$/i).optional(),
+  title:     z.string().max(200).optional(),
+  messages:  z.array(z.record(z.string(), z.unknown())).max(500).optional(),
+  summary:   z.string().max(2000).optional(),
+});
+
+const SessionDeleteSchema = z.object({
+  sessionId: z.string().min(1).max(100),
+});
 
 // ─── GET /api/chat/sessions — liste toutes les sessions de l'utilisateur ───────
 export async function GET() {
@@ -31,8 +44,12 @@ export async function POST(request: Request) {
 
   await connectDB();
 
-  const body = await request.json();
-  const { sessionId, title, messages, summary } = body;
+  const raw = await request.json();
+  const parsedBody = SessionPostSchema.safeParse(raw);
+  if (!parsedBody.success) {
+    return NextResponse.json({ error: 'Données invalides', details: parsedBody.error.flatten() }, { status: 400 });
+  }
+  const { sessionId, title, messages, summary } = parsedBody.data;
 
   // Un vrai id MongoDB est une chaîne hex de 24 caractères
   const isMongoId = typeof sessionId === 'string' && /^[0-9a-f]{24}$/i.test(sessionId);
@@ -77,7 +94,12 @@ export async function DELETE(request: Request) {
 
   await connectDB();
 
-  const { sessionId } = await request.json();
+  const raw = await request.json();
+  const parsedDel = SessionDeleteSchema.safeParse(raw);
+  if (!parsedDel.success) {
+    return NextResponse.json({ error: 'sessionId invalide' }, { status: 400 });
+  }
+  const { sessionId } = parsedDel.data;
   // Ignorer silencieusement les ids non-MongoDB (temporaires)
   const isMongoId = typeof sessionId === 'string' && /^[0-9a-f]{24}$/i.test(sessionId);
   if (isMongoId) {

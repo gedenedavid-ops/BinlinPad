@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import { Note } from '@/models/Note';
+import { z } from 'zod';
 
 const DEEPSEEK_API_URL  = 'https://api.deepseek.com/chat/completions';
 const QDRANT_URL             = process.env.QDRANT_URL ?? 'http://localhost:6333';
@@ -13,6 +14,10 @@ const CURRICULUM_COLL        = process.env.QDRANT_CURRICULUM_COLLECTION ?? 'cour
 const VOYAGE_API_URL    = 'https://api.voyageai.com/v1/embeddings';
 
 type AnalyzeMode = 'compare' | 'correct' | 'complete' | 'flashcards' | 'exam';
+
+const AnalyzeBodySchema = z.object({
+  mode: z.enum(['compare', 'correct', 'complete', 'flashcards', 'exam']),
+});
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -109,10 +114,12 @@ export async function POST(request: Request, { params }: Params) {
     return NextResponse.json({ error: 'DEEPSEEK_API_KEY non configuré' }, { status: 503 });
   }
 
-  const { mode }: { mode: AnalyzeMode } = await request.json();
-  if (!['compare', 'correct', 'complete', 'flashcards', 'exam'].includes(mode)) {
-    return NextResponse.json({ error: 'Mode invalide' }, { status: 400 });
+  const rawBody = await request.json();
+  const parsedBody = AnalyzeBodySchema.safeParse(rawBody);
+  if (!parsedBody.success) {
+    return NextResponse.json({ error: 'Mode invalide. Valeurs acceptées : compare, correct, complete, flashcards, exam' }, { status: 400 });
   }
+  const { mode }: { mode: AnalyzeMode } = parsedBody.data;
 
   await connectDB();
 

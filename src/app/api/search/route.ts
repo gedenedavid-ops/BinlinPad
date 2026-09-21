@@ -1,5 +1,23 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
+import { z } from 'zod';
+
+// ─── Schémas de validation ─────────────────────────────────────────────────────
+const SearchSchema = z.object({
+  query: z.string().min(1, 'query requise').max(2000, 'query trop longue'),
+  topK:  z.number().int().min(1).max(20).optional().default(5),
+});
+
+const IndexSchema = z.object({
+  noteId:  z.string().min(1).max(100),
+  title:   z.string().min(1).max(500),
+  content: z.string().min(1).max(100_000),
+  subject: z.string().min(1).max(100),
+});
+
+const DeleteSchema = z.object({
+  noteId: z.string().min(1).max(100),
+});
 
 const QDRANT_URL        = process.env.QDRANT_URL ?? 'http://localhost:6333';
 const QDRANT_API_KEY    = process.env.QDRANT_API_KEY;
@@ -61,7 +79,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { query, topK = 5 } = await request.json();
+    const raw = await request.json();
+    const parsed = SearchSchema.safeParse(raw);
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Données invalides', details: parsed.error.flatten() }, { status: 400 });
+    }
+    const { query, topK } = parsed.data;
 
     const embedding = await getEmbedding(query, 'query');
 
@@ -111,7 +134,12 @@ export async function PUT(request: Request) {
   }
 
   try {
-    const { noteId, title, content, subject } = await request.json();
+    const raw = await request.json();
+    const parsed = IndexSchema.safeParse(raw);
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Données invalides', details: parsed.error.flatten() }, { status: 400 });
+    }
+    const { noteId, title, content, subject } = parsed.data;
 
     const text = `${title}\n${content}`;
     const embedding = await getEmbedding(text, 'document');
@@ -165,7 +193,12 @@ export async function DELETE(request: Request) {
   }
 
   try {
-    const { noteId } = await request.json();
+    const raw = await request.json();
+    const parsed = DeleteSchema.safeParse(raw);
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Données invalides', details: parsed.error.flatten() }, { status: 400 });
+    }
+    const { noteId } = parsed.data;
 
     // Sécurité : vérifier que le point appartient bien à cet utilisateur
     // avant de le supprimer (filtre sur userId dans le payload)

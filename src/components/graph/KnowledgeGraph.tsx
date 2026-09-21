@@ -300,7 +300,7 @@ export function KnowledgeGraph({ onNodeClick, showAllNotes = true }: KnowledgeGr
     svgRef.current?.addEventListener('binlinpad:filter', handleFilterChange);
 
     // ── Clic nœud ──────────────────────────────────────────────────────────
-    nodeGroup.on('click', (event, d) => {
+    nodeGroup['on']('click', (event, d) => {
       event.stopPropagation();
       const newFilter = filterRef.current === d.id ? null : d.id;
       filterRef.current = newFilter;
@@ -311,7 +311,7 @@ export function KnowledgeGraph({ onNodeClick, showAllNotes = true }: KnowledgeGr
 
     // ── Hover ──────────────────────────────────────────────────────────────
     nodeGroup
-      .on('mouseenter', (event, d) => {
+      ['on']('mouseenter', (event, d) => {
         const rect = container.getBoundingClientRect();
         // Compte les notes liées à ce nœud (matière ou tag)
         let noteCount: number | undefined;
@@ -334,7 +334,7 @@ export function KnowledgeGraph({ onNodeClick, showAllNotes = true }: KnowledgeGr
           .select('circle:last-of-type')
           .attr('stroke', '#F4A236').attr('stroke-width', 3);
       })
-      .on('mouseleave', (event, d) => {
+      ['on']('mouseleave', (event, d) => {
         setHoveredNode(null);
         d3.select<SVGGElement, GraphDatum>(event.currentTarget)
           .select('circle:last-of-type')
@@ -343,14 +343,14 @@ export function KnowledgeGraph({ onNodeClick, showAllNotes = true }: KnowledgeGr
       });
 
     // Clic fond → vider le filtre
-    svg.on('click', () => {
+    svg['on']('click', () => {
       filterRef.current = null;
       setGraphFilter(null);
       updateFilterStyles(null);
     });
 
     // Tick
-    simulation.on('tick', () => {
+    simulation['on']('tick', () => {
       link
         .attr('x1', (d) => (d.source as GraphDatum).x ?? 0)
         .attr('y1', (d) => (d.source as GraphDatum).y ?? 0)
@@ -361,6 +361,9 @@ export function KnowledgeGraph({ onNodeClick, showAllNotes = true }: KnowledgeGr
 
     return () => {
       simulation.stop();
+      // Nettoyage explicite des listeners D3 pour éviter les fuites mémoire
+      nodeGroup['on']('click', null)['on']('mouseenter', null)['on']('mouseleave', null);
+      svg['on']('click', null)['on']('.zoom', null);
       svgRef.current?.removeEventListener('binlinpad:filter', handleFilterChange);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps

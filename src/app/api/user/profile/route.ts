@@ -2,6 +2,22 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
+import { z } from 'zod';
+
+
+// ─── Schéma de validation PATCH ──────────────────────────────────────────────────────
+const ProfilePatchSchema = z.object({
+  userType:       z.enum(['eleve', 'etudiant']).optional(),
+  weakSubjects:   z.array(z.string().max(100)).max(50).optional(),
+  onboardingDone: z.boolean().optional(),
+  schoolLevel:    z.string().max(100).optional(),
+  studentField:   z.string().max(200).optional(),
+  customSubjects: z.array(z.string().max(100)).max(50).optional(),
+  studiedTopics:  z.union([
+    z.string().max(200),
+    z.array(z.string().max(200)).max(100),
+  ]).optional(),
+}).strict();
 
 // ─── GET /api/user/profile — lit le profil complet (userType + learningProfile)
 export async function GET() {
@@ -30,7 +46,12 @@ export async function PATCH(request: Request) {
 
   await connectDB();
 
-  const body = await request.json();
+  const rawBody = await request.json();
+  const validation = ProfilePatchSchema.safeParse(rawBody);
+  if (!validation.success) {
+    return NextResponse.json({ error: 'Données invalides', details: validation.error.flatten() }, { status: 400 });
+  }
+  const body = validation.data;
   const allowed: Record<string, unknown> = {};
 
   // Seuls ces champs sont patchables directement
