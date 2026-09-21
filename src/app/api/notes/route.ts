@@ -4,24 +4,22 @@ import { connectDB } from '@/lib/db';
 import { Note } from '@/models/Note';
 import { countWords, estimateReadTime } from '@/lib/utils';
 import { validateSubject } from '@/lib/validate-subject';
-import type { Subject, Mood, NoteTag } from '@/types';
+import { z } from 'zod';
 
 // ─── Body types ───────────────────────────────────────────────────────────────
 
-type NoteColor = 'ochre' | 'dark' | 'default';
-
-type CreateNoteBody = {
-  title: string;
-  content?: string;
-  subject: Subject;
-  tags?: NoteTag[];
-  mood?: Mood;
-  attachments?: unknown[];
-  isLocked?: boolean;
-  isPinned?: boolean;
-  isFavorite?: boolean;
-  color?: NoteColor;
-};
+const CreateNoteSchema = z.object({
+  title: z.string().trim().min(1, 'Titre requis'),
+  content: z.string().optional().default(''),
+  subject: z.string().min(1, 'Matière requise'),
+  tags: z.array(z.string()).optional().default([]),
+  mood: z.enum(['content', 'neutre', 'triste', 'stresse', 'motive', 'fatigue', 'confus']).optional(),
+  attachments: z.array(z.any()).optional().default([]),
+  isLocked: z.boolean().optional().default(false),
+  isPinned: z.boolean().optional().default(false),
+  isFavorite: z.boolean().optional().default(false),
+  color: z.enum(['ochre', 'dark', 'default']).optional().default('default')
+});
 
 // ─── GET /api/notes — liste toutes les notes de l'utilisateur connecté ────────
 export async function GET() {
@@ -47,23 +45,25 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = await request.json() as CreateNoteBody;
+    const body = await request.json();
+    const parsed = CreateNoteSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
+    }
+
     const {
       title,
-      content = '',
+      content,
       subject,
-      tags = [],
+      tags,
       mood,
-      attachments = [],
-      isLocked  = false,
-      isPinned  = false,
-      isFavorite = false,
-      color     = 'default',
-    } = body;
-
-    if (!title?.trim() || !subject) {
-      return NextResponse.json({ error: 'Titre et matière requis' }, { status: 400 });
-    }
+      attachments,
+      isLocked,
+      isPinned,
+      isFavorite,
+      color,
+    } = parsed.data;
 
     await connectDB();
 

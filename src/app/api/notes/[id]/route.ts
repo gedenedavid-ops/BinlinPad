@@ -4,26 +4,26 @@ import { connectDB } from '@/lib/db';
 import { Note } from '@/models/Note';
 import { countWords, estimateReadTime } from '@/lib/utils';
 import { validateSubject } from '@/lib/validate-subject';
-import type { Subject, Mood, NoteTag } from '@/types';
+import { z } from 'zod';
 
 type Params = { params: Promise<{ id: string }> };
 
 // ─── Body types ───────────────────────────────────────────────────────────────
 
-type NoteColor = 'ochre' | 'dark' | 'default';
+const UpdateNoteSchema = z.object({
+  title: z.string().trim().min(1, 'Titre requis').optional(),
+  content: z.string().optional(),
+  subject: z.string().min(1, 'Matière requise').optional(),
+  tags: z.array(z.string()).optional(),
+  mood: z.enum(['content', 'neutre', 'triste', 'stresse', 'motive', 'fatigue', 'confus']).optional(),
+  attachments: z.array(z.any()).optional(),
+  isLocked: z.boolean().optional(),
+  isPinned: z.boolean().optional(),
+  isFavorite: z.boolean().optional(),
+  color: z.enum(['ochre', 'dark', 'default']).optional()
+});
 
-type UpdateNoteBody = {
-  title?:      string;
-  content?:    string;
-  subject?:    Subject;
-  tags?:       NoteTag[];
-  mood?:       Mood;
-  attachments?: unknown[];
-  isLocked?:   boolean;
-  isPinned?:   boolean;
-  isFavorite?: boolean;
-  color?:      NoteColor;
-};
+type UpdateNoteBody = z.infer<typeof UpdateNoteSchema>;
 
 // ─── GET /api/notes/[id] ──────────────────────────────────────────────────────
 export async function GET(_req: Request, { params }: Params) {
@@ -49,8 +49,14 @@ export async function PUT(request: Request, { params }: Params) {
   }
 
   try {
-    const body = await request.json() as UpdateNoteBody;
-    const { content, subject, ...rest } = body;
+    const body = await request.json();
+    const parsed = UpdateNoteSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
+    }
+
+    const { content, subject, ...rest } = parsed.data;
 
     await connectDB();
 

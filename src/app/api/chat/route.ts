@@ -257,19 +257,26 @@ Sois factuel, bref, et utile pour la prochaine session.`;
   return data.choices?.[0]?.message?.content ?? '';
 }
 
+import { z } from 'zod';
+
 // ─── Body type ───────────────────────────────────────────────────────────────
 
-type ChatRequestMessage = { role: 'user' | 'assistant'; content: string };
+const ChatRequestSchema = z.object({
+  messages: z.array(z.object({
+    role: z.enum(['user', 'assistant']),
+    content: z.string().max(12000, 'Message trop long')
+  })).min(1, 'Messages requis').max(100, 'Conversation trop longue'),
+  query: z.string().max(2000, 'Question invalide').optional(),
+  context: z.array(z.any()).max(20, 'Contexte invalide').optional(),
+  userType: z.enum(['eleve', 'etudiant']).default('eleve'),
+  schoolLevel: z.enum([
+    '6eme', '5eme', '4eme', '3eme', '2nde', '1ere', 'Terminale'
+  ]).optional(),
+  studentField: z.string().optional(),
+  lastSeenAt: z.string().optional()
+});
 
-type ChatRequestBody = {
-  messages:      ChatRequestMessage[];
-  query?:        string;
-  context?:      SearchResult[];
-  userType?:     UserType;
-  schoolLevel?:  SchoolLevel;
-  studentField?: StudentField;
-  lastSeenAt?:   string;
-};
+type ChatRequestBody = z.infer<typeof ChatRequestSchema>;
 
 // ─── POST /api/chat ───────────────────────────────────────────────────────────
 
@@ -280,44 +287,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
+    const body = await request.json();
+    const parsed = ChatRequestSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
+    }
+
     const {
       messages,
       context,
       query,
-      userType = 'eleve',
+      userType,
       schoolLevel,
       studentField,
       lastSeenAt,
-    } = await request.json() as ChatRequestBody;
-
-    if (!Array.isArray(messages) || messages.length === 0) {
-      return NextResponse.json({ error: 'Messages requis' }, { status: 400 });
-    }
-    if (messages.length > 100) {
-      return NextResponse.json({ error: 'Conversation trop longue' }, { status: 413 });
-    }
-
-    const validRoles = new Set(['user', 'assistant']);
-    if (messages.some((message) => (
-      !message ||
-      typeof message.content !== 'string' ||
-      !validRoles.has(message.role) ||
-      message.content.length > 12_000
-    ))) {
-      return NextResponse.json({ error: 'Message invalide' }, { status: 400 });
-    }
-
-    if (typeof query !== 'undefined' && (typeof query !== 'string' || query.length > 2_000)) {
-      return NextResponse.json({ error: 'Question invalide' }, { status: 400 });
-    }
-
-    if (context !== undefined && (!Array.isArray(context) || context.length > 20)) {
-      return NextResponse.json({ error: 'Contexte invalide' }, { status: 400 });
-    }
-
-    if (!['eleve', 'etudiant'].includes(userType)) {
-      return NextResponse.json({ error: 'Profil invalide' }, { status: 400 });
-    }
+    } = parsed.data;
 
     const userId = session.user.id;
 

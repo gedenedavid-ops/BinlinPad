@@ -2,41 +2,29 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
+import { z } from 'zod';
+
+const InscriptionSchema = z.object({
+  name: z.string().trim().min(1, 'Le nom est requis').max(80, 'Le nom est trop long'),
+  email: z.string().trim().toLowerCase().email('Adresse email invalide').max(254, 'Email trop long'),
+  password: z.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères').max(128, 'Mot de passe trop long'),
+  userType: z.enum(['eleve', 'etudiant']).default('eleve')
+});
 
 // POST /api/auth/inscription — créer un compte
 export async function POST(request: Request) {
   try {
-    const { name, email, password, userType = 'eleve' } = await request.json();
+    const body = await request.json();
+    const parsed = InscriptionSchema.safeParse(body);
 
-    if (typeof name !== 'string' || typeof email !== 'string' || typeof password !== 'string' || !name.trim() || !email.trim() || !password) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Tous les champs sont requis.' },
+        { error: parsed.error.issues[0].message },
         { status: 400 }
       );
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
-
-    if (name.trim().length > 80 || normalizedEmail.length > 254 || password.length > 128) {
-      return NextResponse.json(
-        { error: 'Les informations fournies sont trop longues.' },
-        { status: 400 }
-      );
-    }
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-      return NextResponse.json(
-        { error: 'Adresse email invalide.' },
-        { status: 400 }
-      );
-    }
-
-    if (password.length < 8) {
-      return NextResponse.json(
-        { error: 'Le mot de passe doit contenir au moins 8 caractères.' },
-        { status: 400 }
-      );
-    }
+    const { name, email: normalizedEmail, password, userType } = parsed.data;
 
     await connectDB();
 
