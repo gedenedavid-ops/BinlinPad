@@ -3,7 +3,8 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import * as d3 from 'd3';
 import { useStore } from '@/store';
-import { SUBJECT_CONFIG, GRAPH_NODE_COLORS } from '@/lib/utils';
+import { GRAPH_NODE_COLORS } from '@/lib/utils';
+import { useUserContext } from '@/lib/useUserContext';
 import type { GraphNode, Subject } from '@/types';
 
 interface GraphDatum extends GraphNode {
@@ -36,6 +37,7 @@ export function KnowledgeGraph({ onNodeClick, showAllNotes = true }: KnowledgeGr
   const containerRef = useRef<HTMLDivElement>(null);
   const filterRef    = useRef<string | null>(null);
   const { notes, setGraphFilter, graphFilterNodeId } = useStore();
+  const { subjectConfig } = useUserContext();
   const [hoveredNode, setHoveredNode] = useState<{
     id: string; label: string; type: string;
     noteCount?: number; wordCount?: number; x: number; y: number;
@@ -51,7 +53,7 @@ export function KnowledgeGraph({ onNodeClick, showAllNotes = true }: KnowledgeGr
     // ── Nœuds matières ────────────────────────────────────────────────────────
     const subjectsInNotes = new Set(notes.map((n) => n.subject));
     subjectsInNotes.forEach((subject) => {
-      const config = SUBJECT_CONFIG[subject as Subject];
+      const config = subjectConfig[subject];
       if (!config) return;
       const notesForSubject = notes.filter((n) => n.subject === subject);
 
@@ -105,7 +107,7 @@ export function KnowledgeGraph({ onNodeClick, showAllNotes = true }: KnowledgeGr
       : notes.filter((n) => n.isPinned || n.isFavorite);
 
     notesToShow.forEach((note) => {
-      const subjectCfg = SUBJECT_CONFIG[note.subject as Subject];
+      const subjectCfg = subjectConfig[note.subject];
       // Taille selon nb de mots (6..16)
       const size = Math.min(16, Math.max(6, 6 + Math.sqrt(note.wordCount) * 0.6));
       const node: GraphDatum = {
@@ -176,7 +178,7 @@ export function KnowledgeGraph({ onNodeClick, showAllNotes = true }: KnowledgeGr
     }
 
     return { nodes, links };
-  }, [notes, showAllNotes]);
+  }, [notes, showAllNotes, subjectConfig]);
 
   // ── Simulation D3 ─────────────────────────────────────────────────────────
   useEffect(() => {

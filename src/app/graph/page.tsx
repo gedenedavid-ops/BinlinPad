@@ -13,7 +13,8 @@ import { useStore, useFilteredNotes } from '@/store';
 import { NoteCard } from '@/components/journal/NoteCard';
 import { NoteEditor } from '@/components/journal/NoteEditor';
 import { PinLockModal } from '@/components/journal/PinLock';
-import { SUBJECT_CONFIG, MOOD_CONFIG, cn } from '@/lib/utils';
+import { MOOD_CONFIG, cn } from '@/lib/utils';
+import { useUserContext } from '@/lib/useUserContext';
 import type { Note, Subject, Mood } from '@/types';
 
 // ─── Panel latéral — stats d'un nœud sélectionné ─────────────────────────────
@@ -30,6 +31,7 @@ function NodePanel({
 }) {
   const { notes } = useStore();
   const filteredNotes = useFilteredNotes();
+  const { subjectConfig } = useUserContext();
 
   // Stats selon le type de nœud
   const relatedNotes = nodeType === 'subject'
@@ -52,7 +54,7 @@ function NodePanel({
   const dominantMood = Object.entries(moodCounts).sort((a, b) => b[1] - a[1])[0]?.[0] as Mood | undefined;
 
   const subjectCfg = nodeType === 'subject'
-    ? SUBJECT_CONFIG[nodeId as Subject]
+    ? subjectConfig[nodeId]
     : null;
 
   const displaySubject = nodeType === 'subject' ? nodeId
@@ -190,6 +192,7 @@ function OverviewPanel({
   }, {});
   const totalWords = notes.reduce((s, n) => s + n.wordCount, 0);
   const totalTags  = new Set(notes.flatMap((n) => n.tags.map((t) => t.label))).size;
+  const { subjectConfig } = useUserContext();
 
   return (
     <div className="flex flex-col h-full">
@@ -225,7 +228,7 @@ function OverviewPanel({
         {Object.entries(subjectCounts)
           .sort((a, b) => b[1] - a[1])
           .map(([subject, count]) => {
-            const config = SUBJECT_CONFIG[subject as Subject];
+            const config = subjectConfig[subject];
             if (!config) return null;
             const pct = Math.round((count / notes.length) * 100);
             return (

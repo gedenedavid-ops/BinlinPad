@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
+import type { UserType, SchoolLevel, StudentField, SearchResult } from '@/types';
 
 const DEEPSEEK_API_URL = 'https://api.deepseek.com/chat/completions';
 
@@ -100,15 +101,15 @@ N'ajoute ce marqueur QUE lorsque tu donnes explicitement un exercice/défi avec 
 RÉACTION À LA FIN DU MINUTEUR :
 Si le message de l'apprenant est exactement "[TIMER_EXPIRED] Le temps imparti pour l'exercice est écoulé.", c'est que le chrono vient de sonner. Réagis naturellement : félicite-le d'avoir essayé, demande-lui de te partager sa réponse ou sa démarche, et indique que tu vas corriger ensemble. Sois encourageant, pas pressant.`;
 
-const ELEVE_ADDENDUM = `
-Tu t'adresses à un ÉLÈVE du système scolaire ivoirien (primaire / collège / lycée).
+const ELEVE_ADDENDUM = (schoolLevel?: string) => `
+Tu t'adresses à un ÉLÈVE du système scolaire ivoirien (primaire / collège / lycée).${schoolLevel ? `\nNiveau de l'élève : **${schoolLevel}** — adapte le vocabulaire, les exemples et la profondeur à ce niveau.` : ''}
 - Appuie-toi en priorité sur ses notes personnelles ET sur les extraits du programme officiel fournis en contexte
 - Si ses notes sont incomplètes ou manquantes, complète avec le programme officiel
 - Adapte ton niveau de langage à un jeune élève : simple, concret, sans jargon inutile
 - Aide-le à préparer ses examens (BEPC, BAC) en lien avec le curriculum ivoirien`;
 
-const ETUDIANT_ADDENDUM = `
-Tu t'adresses à un ÉTUDIANT du supérieur (université, BTS, grandes écoles…).
+const ETUDIANT_ADDENDUM = (studentField?: string) => `
+Tu t'adresses à un ÉTUDIANT du supérieur (université, BTS, grandes écoles…).${studentField ? `\nFilière de l'étudiant : **${studentField}** — priorise les exemples, la terminologie et les références propres à ce domaine.` : ''}
 - Tu as accès à toutes ses notes et tu peux t'appuyer dessus librement
 - Pas de restriction de curriculum : traite n'importe quel sujet académique ou professionnel
 - Tu peux aller dans la profondeur, utiliser la terminologie spécialisée et les notions avancées
@@ -256,6 +257,20 @@ Sois factuel, bref, et utile pour la prochaine session.`;
   return data.choices?.[0]?.message?.content ?? '';
 }
 
+// ─── Body type ───────────────────────────────────────────────────────────────
+
+type ChatRequestMessage = { role: 'user' | 'assistant'; content: string };
+
+type ChatRequestBody = {
+  messages:      ChatRequestMessage[];
+  query?:        string;
+  context?:      SearchResult[];
+  userType?:     UserType;
+  schoolLevel?:  SchoolLevel;
+  studentField?: StudentField;
+  lastSeenAt?:   string;
+};
+
 // ─── POST /api/chat ───────────────────────────────────────────────────────────
 
 export async function POST(request: Request) {
@@ -267,12 +282,13 @@ export async function POST(request: Request) {
 
     const {
       messages,
-      context,       // notes perso (SearchResult[]) depuis le store
+      context,
       query,
       userType = 'eleve',
-
-      lastSeenAt,    // ISO string — dernière visite de l'utilisateur (envoyé par le client)
-    } = await request.json();
+      schoolLevel,
+      studentField,
+      lastSeenAt,
+    } = await request.json() as ChatRequestBody;
 
     if (!Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json({ error: 'Messages requis' }, { status: 400 });
@@ -314,7 +330,9 @@ export async function POST(request: Request) {
     }
 
     // ── 1. Construire le system prompt selon le profil ────────────────────────
-    const addendum = userType === 'etudiant' ? ETUDIANT_ADDENDUM : ELEVE_ADDENDUM;
+    const addendum = userType === 'etudiant'
+      ? ETUDIANT_ADDENDUM(studentField)
+      : ELEVE_ADDENDUM(schoolLevel);
     let systemContent = BASE_PROMPT + addendum;
 
     // ── Conscience temporelle ─────────────────────────────────────────────────

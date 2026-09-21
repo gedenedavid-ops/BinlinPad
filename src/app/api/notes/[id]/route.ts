@@ -3,14 +3,27 @@ import { auth } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import { Note } from '@/models/Note';
 import { countWords, estimateReadTime } from '@/lib/utils';
+import { validateSubject } from '@/lib/validate-subject';
+import type { Subject, Mood, NoteTag } from '@/types';
 
 type Params = { params: Promise<{ id: string }> };
 
-// Vérifie que la note appartient bien à l'utilisateur connecté
-async function ownNote(noteId: string, userId: string) {
-  const note = await Note.findOne({ _id: noteId, userId }).lean();
-  return note;
-}
+// ─── Body types ───────────────────────────────────────────────────────────────
+
+type NoteColor = 'ochre' | 'dark' | 'default';
+
+type UpdateNoteBody = {
+  title?:      string;
+  content?:    string;
+  subject?:    Subject;
+  tags?:       NoteTag[];
+  mood?:       Mood;
+  attachments?: unknown[];
+  isLocked?:   boolean;
+  isPinned?:   boolean;
+  isFavorite?: boolean;
+  color?:      NoteColor;
+};
 
 // ─── GET /api/notes/[id] ──────────────────────────────────────────────────────
 export async function GET(_req: Request, { params }: Params) {
@@ -21,7 +34,7 @@ export async function GET(_req: Request, { params }: Params) {
   }
 
   await connectDB();
-  const note = await ownNote(id, session.user.id);
+  const note = await Note.findOne({ _id: id, userId: session.user.id }).lean();
   if (!note) return NextResponse.json({ error: 'Note introuvable' }, { status: 404 });
 
   return NextResponse.json({ note });
@@ -36,12 +49,21 @@ export async function PUT(request: Request, { params }: Params) {
   }
 
   try {
-    const body = await request.json();
-    const { content, ...rest } = body;
+    const body = await request.json() as UpdateNoteBody;
+    const { content, subject, ...rest } = body;
 
     await connectDB();
 
-    const update: Record<string, unknown> = { ...rest };
+    // Validation du subject si modifié
+    if (subject !== undefined) {
+      const subjectCheck = await validateSubject(subject, session.user.id);
+      if (!subjectCheck.valid) {
+        return NextResponse.json({ error: subjectCheck.error }, { status: 400 });
+      }
+    }
+
+    const update: Partial<UpdateNoteBody & { wordCount: number; readTime: number }> = { ...rest };
+    if (subject !== undefined) update.subject = subject;
     if (content !== undefined) {
       update.content   = content;
       update.wordCount = countWords(content);

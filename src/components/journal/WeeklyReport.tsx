@@ -3,8 +3,8 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, BookOpen, PenLine, Calendar } from 'lucide-react';
-import { SUBJECT_CONFIG } from '@/lib/utils';
-import type { Note, Subject } from '@/types';
+import { useUserContext } from '@/lib/useUserContext';
+import type { Note } from '@/types';
 
 interface WeeklyReportProps {
   notes: Note[];
@@ -16,6 +16,7 @@ interface WeeklyReportProps {
  * Ne fait aucune requête réseau.
  */
 export function WeeklyReport({ notes }: WeeklyReportProps) {
+  const { subjectConfig } = useUserContext();
   const report = useMemo(() => {
     const now   = new Date();
     const weekAgo = new Date(now.getTime() - 7 * 86_400_000);
@@ -27,7 +28,7 @@ export function WeeklyReport({ notes }: WeeklyReportProps) {
     const wordCount = thisWeek.reduce((acc, n) => acc + n.wordCount, 0);
 
     // Top matière cette semaine
-    const subjectCount: Partial<Record<Subject, number>> = {};
+    const subjectCount: Record<string, number> = {};
     for (const n of thisWeek) {
       subjectCount[n.subject] = (subjectCount[n.subject] ?? 0) + 1;
     }
@@ -98,7 +99,7 @@ export function WeeklyReport({ notes }: WeeklyReportProps) {
 
       {report.topSubject && (
         <div className="mt-3 pt-3 border-t border-[#F5F3EF] dark:border-[#2E2C28] flex items-center gap-1.5">
-          <span className="text-sm">{SUBJECT_CONFIG[report.topSubject[0] as Subject]?.emoji}</span>
+          <span className="text-sm">{subjectConfig[report.topSubject[0]]?.emoji}</span>
           <span className="text-[11px] text-[#57514C] dark:text-[#9B9590]">
             Top matière : <strong>{report.topSubject[0]}</strong> ({report.topSubject[1]} note{(report.topSubject[1] ?? 0) > 1 ? 's' : ''})
           </span>

@@ -36,6 +36,10 @@ export async function PATCH(request: Request) {
   // Seuls ces champs sont patchables directement
   if (body.userType !== undefined) allowed.userType = body.userType;
   if (body.weakSubjects !== undefined) allowed['learningProfile.weakSubjects'] = body.weakSubjects;
+  if (body.onboardingDone !== undefined) allowed['learningProfile.onboardingDone'] = body.onboardingDone;
+  if (body.schoolLevel !== undefined) allowed['learningProfile.schoolLevel'] = body.schoolLevel;
+  if (body.studentField !== undefined) allowed['learningProfile.studentField'] = body.studentField;
+  if (body.customSubjects !== undefined) allowed['learningProfile.customSubjects'] = body.customSubjects;
 
   if (Object.keys(allowed).length === 0 && !body.studiedTopics) {
     return NextResponse.json({ error: 'Aucun champ valide fourni' }, { status: 400 });

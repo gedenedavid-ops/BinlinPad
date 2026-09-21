@@ -6,7 +6,8 @@ import {
   Lock, Pin, Heart, MoreHorizontal, Clock, BookOpen, Eye,
 } from 'lucide-react';
 import { useStore } from '@/store';
-import { SUBJECT_CONFIG, MOOD_CONFIG, NOTE_COLORS, formatNoteDate, truncate, cn } from '@/lib/utils';
+import { MOOD_CONFIG, NOTE_COLORS, formatNoteDate, truncate, cn } from '@/lib/utils';
+import { useUserContext } from '@/lib/useUserContext';
 import { SubjectBadge, Badge } from '@/components/ui/primitives/Badge';
 import type { Note } from '@/types';
 
@@ -21,8 +22,9 @@ interface NoteCardProps {
 export function NoteCard({ note, onOpen, index = 0, listMode = false }: NoteCardProps) {
   const { pinNote, toggleFavorite, deleteNote, openEditor, openPinModal, addToast } = useStore();
   const isUnlocked = useStore((s) => s.unlockedNoteIds.includes(note.id));
+  const { subjectConfig: allSubjectConfig } = useUserContext();
   const [menuOpen, setMenuOpen] = useState(false);
-  const subjectConfig = SUBJECT_CONFIG[note.subject];
+  const subjectConfig = allSubjectConfig[note.subject];
   const moodConfig = note.mood ? MOOD_CONFIG[note.mood] : null;
   const colors = NOTE_COLORS[note.color ?? 'default'];
 
@@ -48,7 +50,7 @@ export function NoteCard({ note, onOpen, index = 0, listMode = false }: NoteCard
         onClick={handleCardClick}
       >
         {/* Subject emoji */}
-        <span className="text-xl flex-shrink-0">{subjectConfig.emoji}</span>
+        <span className="text-xl flex-shrink-0">{subjectConfig?.emoji ?? '📝'}</span>
 
         {/* Main content */}
         <div className="flex-1 min-w-0">
@@ -132,10 +134,10 @@ export function NoteCard({ note, onOpen, index = 0, listMode = false }: NoteCard
         <div className="flex items-start justify-between gap-2 mb-2.5">
           <div className="flex items-center gap-1.5 flex-wrap flex-1 min-w-0">
             <SubjectBadge
-              emoji={subjectConfig.emoji}
+              emoji={subjectConfig?.emoji ?? '📝'}
               label={note.subject}
-              color={note.color === 'dark' || note.color === 'ochre' ? 'rgba(255,255,255,0.8)' : subjectConfig.color}
-              bg={note.color === 'dark' || note.color === 'ochre' ? 'rgba(255,255,255,0.15)' : subjectConfig.bg}
+              color={note.color === 'dark' || note.color === 'ochre' ? 'rgba(255,255,255,0.8)' : (subjectConfig?.color ?? '#9B9590')}
+              bg={note.color === 'dark' || note.color === 'ochre' ? 'rgba(255,255,255,0.15)' : (subjectConfig?.bg ?? '#F5F3EF')}
             />
             {moodConfig && (
               <span className="text-sm" title={moodConfig.label}>{moodConfig.emoji}</span>

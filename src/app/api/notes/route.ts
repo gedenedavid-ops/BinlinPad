@@ -3,6 +3,25 @@ import { auth } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import { Note } from '@/models/Note';
 import { countWords, estimateReadTime } from '@/lib/utils';
+import { validateSubject } from '@/lib/validate-subject';
+import type { Subject, Mood, NoteTag } from '@/types';
+
+// ─── Body types ───────────────────────────────────────────────────────────────
+
+type NoteColor = 'ochre' | 'dark' | 'default';
+
+type CreateNoteBody = {
+  title: string;
+  content?: string;
+  subject: Subject;
+  tags?: NoteTag[];
+  mood?: Mood;
+  attachments?: unknown[];
+  isLocked?: boolean;
+  isPinned?: boolean;
+  isFavorite?: boolean;
+  color?: NoteColor;
+};
 
 // ─── GET /api/notes — liste toutes les notes de l'utilisateur connecté ────────
 export async function GET() {
@@ -28,9 +47,19 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = await request.json();
-    const { title, content = '', subject, tags = [], mood, attachments = [],
-            isLocked = false, isPinned = false, isFavorite = false, color = 'default' } = body;
+    const body = await request.json() as CreateNoteBody;
+    const {
+      title,
+      content = '',
+      subject,
+      tags = [],
+      mood,
+      attachments = [],
+      isLocked  = false,
+      isPinned  = false,
+      isFavorite = false,
+      color     = 'default',
+    } = body;
 
     if (!title?.trim() || !subject) {
       return NextResponse.json({ error: 'Titre et matière requis' }, { status: 400 });
@@ -38,9 +67,15 @@ export async function POST(request: Request) {
 
     await connectDB();
 
+    // Validation du subject selon le profil
+    const subjectCheck = await validateSubject(subject, session.user.id);
+    if (!subjectCheck.valid) {
+      return NextResponse.json({ error: subjectCheck.error }, { status: 400 });
+    }
+
     const note = await Note.create({
-      userId:     session.user.id,
-      title:      title.trim(),
+      userId:    session.user.id,
+      title:     title.trim(),
       content,
       subject,
       tags,
@@ -50,8 +85,8 @@ export async function POST(request: Request) {
       isPinned,
       isFavorite,
       color,
-      wordCount:  countWords(content),
-      readTime:   estimateReadTime(content),
+      wordCount: countWords(content),
+      readTime:  estimateReadTime(content),
     });
 
     return NextResponse.json({ note }, { status: 201 });

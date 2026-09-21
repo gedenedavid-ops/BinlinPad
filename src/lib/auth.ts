@@ -4,6 +4,11 @@ import Google from 'next-auth/providers/google';
 import bcrypt from 'bcryptjs';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
+import { TtlCache } from '@/lib/ttl-cache';
+
+// Cache onboardingDone — 30s TTL, purgé à chaque miss
+// Invalide automatiquement après completeOnboarding() grâce au TTL court
+const onboardingCache = new TtlCache<boolean>(30_000);
 
 export const { handlers, auth } = NextAuth({
   secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
@@ -106,12 +111,35 @@ export const { handlers, auth } = NextAuth({
         } catch { /* silencieux */ }
       }
 
+      // Re-fetch onboardingDone depuis MongoDB (avec cache TTL 30s)
+      if (token.id) {
+        const userId = token.id as string;
+        const cached = onboardingCache.get(userId);
+        if (cached !== undefined) {
+          token.onboardingDone = cached;
+        } else {
+          try {
+            await connectDB();
+            const dbUser = await User.findById(userId)
+              .select('learningProfile.onboardingDone')
+              .lean();
+            const value = (dbUser as { learningProfile?: { onboardingDone?: boolean } } | null)
+              ?.learningProfile?.onboardingDone ?? false;
+            onboardingCache.set(userId, value);
+            token.onboardingDone = value;
+          } catch {
+            token.onboardingDone = token.onboardingDone ?? false;
+          }
+        }
+      }
+
       return token;
     },
 
-    // Expose user.id dans la session côté client
+    // Expose user.id et onboardingDone dans la session côté client
     async session({ session, token }) {
       if (token?.id) session.user.id = token.id as string;
+      session.user.onboardingDone = (token.onboardingDone as boolean) ?? false;
       return session;
     },
   },

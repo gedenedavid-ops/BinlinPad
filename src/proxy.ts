@@ -30,6 +30,20 @@ export default auth((req) => {
     return NextResponse.redirect(new URL('/journal', req.url));
   }
 
+  // Routes exemptes du redirect onboarding
+  const isOnboardingExempt =
+    pathname.startsWith('/onboarding') ||
+    pathname.startsWith('/api/') ||
+    pathname.startsWith('/auth/') ||
+    pathname.startsWith('/connexion') ||
+    pathname.startsWith('/legal') ||
+    pathname === '/';
+
+  // Utilisateur authentifié mais onboarding pas encore fait
+  if (isAuthenticated && !req.auth?.user?.onboardingDone && !isOnboardingExempt) {
+    return NextResponse.redirect(new URL('/onboarding', req.url));
+  }
+
   return NextResponse.next();
 });
 

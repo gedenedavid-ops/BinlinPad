@@ -113,11 +113,26 @@ export type Toast = {
 
 export type UserType = 'eleve' | 'etudiant';
 
+export type SchoolLevel = '6ème' | '5ème' | '4ème' | '3ème' | '2nde' | '1ère' | 'Terminale';
+
+export type StudentField = string;
+
+export type CustomSubject = {
+  id: string;
+  label: string;
+  emoji: string;
+  color: string;
+};
+
 export type LearningProfile = {
   weakSubjects: string[];
   studiedTopics: string[];
   totalSessions: number;
   lastActiveAt?: Date;
+  onboardingDone: boolean;
+  schoolLevel?: SchoolLevel;
+  studentField?: StudentField;
+  customSubjects?: CustomSubject[];
 };
 
 export type SearchResult = {

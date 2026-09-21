@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { useMemo } from 'react';
-import type { Note, NoteFormData, ChatMessage, ChatSession, NavRoute, Toast, Subject, Mood, SearchResult, UserType, LearningProfile } from '@/types';
+import type { Note, NoteFormData, ChatMessage, ChatSession, NavRoute, Toast, Subject, Mood, SearchResult, UserType, LearningProfile, SchoolLevel, StudentField, CustomSubject } from '@/types';
 import {
   generateId,
   getFromStorage,
@@ -18,7 +18,7 @@ import {
   searchNotes,
   updateNote as updateNoteRequest,
 } from '@/features/notes/api';
-import { getProfile, updateUserType } from '@/features/profile/api';
+import { getProfile, updateUserType, updateProfile } from '@/features/profile/api';
 
 // ─── Notes Slice ──────────────────────────────────────────────────────────────
 
@@ -58,6 +58,13 @@ type ChatSlice = {
 
 // ─── User Profile Slice ───────────────────────────────────────────────────────
 
+type OnboardingData = {
+  schoolLevel?: SchoolLevel;
+  studentField?: StudentField;
+  customSubjects?: CustomSubject[];
+  activeSubjects?: string[];
+};
+
 type UserProfileSlice = {
   userId: string | null;
   userType: UserType;
@@ -65,6 +72,7 @@ type UserProfileSlice = {
   profileLoaded: boolean;
   loadUserProfile: () => Promise<void>;
   setUserType: (t: UserType) => Promise<void>;
+  completeOnboarding: (data: OnboardingData) => Promise<void>;
 };
 
 // ─── Preferences Slice ────────────────────────────────────────────────────────
@@ -383,7 +391,7 @@ export const useStore = create<AppStore>((set, get) => ({
       }
 
       // ── Step 2: call DeepSeek avec contexte ──────────────────────────────
-      const { userType, userId } = get();
+      const { userType, userId, learningProfile } = get();
 
       // Récupérer la date de dernière visite AVANT de la mettre à jour
       const lastSeenAt = getFromStorage<string | null>(LAST_SEEN_KEY, null);
@@ -398,6 +406,8 @@ export const useStore = create<AppStore>((set, get) => ({
           query: content,
           context: ragResults,
           userType,
+          schoolLevel: learningProfile.schoolLevel,
+          studentField: learningProfile.studentField,
           lastSeenAt,
         }),
       });
@@ -510,7 +520,7 @@ export const useStore = create<AppStore>((set, get) => ({
   // ── User Profile ────────────────────────────────────────────────────────────
   userId: null,
   userType: 'eleve',
-  learningProfile: { weakSubjects: [], studiedTopics: [], totalSessions: 0 },
+  learningProfile: { weakSubjects: [], studiedTopics: [], totalSessions: 0, onboardingDone: false },
   profileLoaded: false,
 
   loadUserProfile: async () => {
@@ -532,6 +542,21 @@ export const useStore = create<AppStore>((set, get) => ({
     try {
       await updateUserType(t);
     } catch {/* silencieux */}
+  },
+
+  completeOnboarding: async (data) => {
+    // 1. Persistance BDD en premier — si ça échoue, on ne met pas à jour le store
+    //    (évite la race condition onboarding → jwt re-read → redirect loop)
+    await updateProfile({ ...data, onboardingDone: true });
+
+    // 2. Mise à jour locale uniquement après confirmation BDD
+    set((state) => ({
+      learningProfile: {
+        ...state.learningProfile,
+        ...data,
+        onboardingDone: true,
+      },
+    }));
   },
 
   // ── UI ─────────────────────────────────────────────────────────────────────

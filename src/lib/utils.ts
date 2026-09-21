@@ -2,7 +2,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import type { Subject, Mood, Note } from '@/types';
+import type { Mood, Note } from '@/types';
 
 // ─── Class Merging ────────────────────────────────────────────────────────────
 
@@ -44,22 +44,7 @@ export function generateId(): string {
 
 // ─── Subject Config ───────────────────────────────────────────────────────────
 
-export const SUBJECT_CONFIG: Record<Subject, { emoji: string; color: string; bg: string }> = {
-  'Français':           { emoji: '📖', color: '#EC4899', bg: '#FDF2F8' },
-  'Anglais':            { emoji: '🇬🇧', color: '#3B82F6', bg: '#EFF6FF' },
-  'Histoire-Géographie':{ emoji: '🌍', color: '#F59E0B', bg: '#FFFBEB' },
-  'Philosophie':        { emoji: '🤔', color: '#78716C', bg: '#F5F5F4' },
-  'Espagnol':           { emoji: '🇪🇸', color: '#EF4444', bg: '#FEF2F2' },
-  'Allemand':           { emoji: '🇩🇪', color: '#6366F1', bg: '#EEF2FF' },
-  'Mathématiques':      { emoji: '📐', color: '#3B82F6', bg: '#EFF6FF' },
-  'Physique-Chimie':    { emoji: '⚛️', color: '#8B5CF6', bg: '#F5F3FF' },
-  'SVT':                { emoji: '🌿', color: '#22C55E', bg: '#F0FDF4' },
-  'EDHC':               { emoji: '🏛️', color: '#14B8A6', bg: '#F0FDFA' },
-  'EPS':                { emoji: '⚽', color: '#F97316', bg: '#FFF7ED' },
-  'Arts Plastiques':    { emoji: '🎨', color: '#E11D48', bg: '#FFF1F2' },
-  'Éducation Musicale': { emoji: '🎵', color: '#A855F7', bg: '#FAF5FF' },
-  'Autre':              { emoji: '📝', color: '#9B9590', bg: '#F5F3EF' },
-};
+export { ELEVE_SUBJECT_CONFIG as SUBJECT_CONFIG } from '@/lib/subjects';
 
 // ─── Mood Config ──────────────────────────────────────────────────────────────
 

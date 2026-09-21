@@ -1,5 +1,5 @@
 import { apiRequest } from '@/lib/api-client';
-import type { LearningProfile, UserType } from '@/types';
+import type { CustomSubject, LearningProfile, UserType } from '@/types';
 
 type ProfileResponse = {
   user?: {
@@ -14,6 +14,8 @@ const defaultLearningProfile: LearningProfile = {
   weakSubjects: [],
   studiedTopics: [],
   totalSessions: 0,
+  onboardingDone: false,
+  customSubjects: [],
 };
 
 export async function getProfile(): Promise<{
@@ -36,6 +38,20 @@ export async function updateUserType(userType: UserType): Promise<void> {
   const response = await apiRequest('/api/user/profile', {
     method: 'PATCH',
     body: JSON.stringify({ userType }),
+  });
+  if (!response.ok) throw new Error(`Profile update failed: ${response.status}`);
+}
+
+export async function updateProfile(patch: Partial<{
+  userType: UserType;
+  onboardingDone: boolean;
+  schoolLevel: string;
+  studentField: string;
+  customSubjects: CustomSubject[];
+}>): Promise<void> {
+  const response = await apiRequest('/api/user/profile', {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
   });
   if (!response.ok) throw new Error(`Profile update failed: ${response.status}`);
 }

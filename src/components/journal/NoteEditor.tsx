@@ -9,8 +9,9 @@ import {
   Layers, FileText, Mic, MicOff, ScanText,
 } from 'lucide-react';
 import { useStore } from '@/store';
-import { SUBJECT_CONFIG, MOOD_CONFIG, generateId, countWords, estimateReadTime, cn } from '@/lib/utils';
+import { MOOD_CONFIG, generateId, countWords, estimateReadTime, cn } from '@/lib/utils';
 import { renderMarkdown } from '@/lib/renderMarkdown';
+import { useUserContext } from '@/lib/useUserContext';
 import { Button } from '@/components/ui/primitives/Button';
 import { FlashcardsModal, type Flashcard } from '@/components/journal/FlashcardsModal';
 import type { Subject, Mood, NoteFormData, NoteTag } from '@/types';
@@ -20,7 +21,6 @@ import type { Subject, Mood, NoteFormData, NoteTag } from '@/types';
 type AnalyzeMode = 'compare' | 'correct' | 'complete' | 'flashcards' | 'exam';
 type AISuggestion = { mode: AnalyzeMode; result: string } | null;
 
-const SUBJECTS = Object.keys(SUBJECT_CONFIG) as Subject[];
 const MOODS = Object.keys(MOOD_CONFIG) as Mood[];
 const COLORS: Array<{ key: 'default' | 'ochre' | 'dark'; label: string; preview: string }> = [
   { key: 'default', label: 'Défaut', preview: '#FFFFFF' },
@@ -30,6 +30,7 @@ const COLORS: Array<{ key: 'default' | 'ochre' | 'dark'; label: string; preview:
 
 export function NoteEditor() {
   const { editorOpen, editingNoteId, closeEditor, notes, addNote, updateNote, addToast } = useStore();
+  const { subjectConfig, subjectList, isEtudiant } = useUserContext();
 
   const existingNote = editingNoteId ? notes.find((n) => n.id === editingNoteId) : null;
 
@@ -295,25 +296,34 @@ export function NoteEditor() {
                 onClick={() => { setShowSubjectMenu(!showSubjectMenu); setShowMoodMenu(false); setShowColorMenu(false); }}
                 className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#F5F3EF] dark:bg-[#242320] rounded-xl text-xs font-medium text-[#1A1A1A] dark:text-[#F0EDE8] hover:bg-[#EDE9E3] dark:hover:bg-[#2E2C28] transition-colors"
               >
-                <span>{SUBJECT_CONFIG[subject].emoji}</span>
+                <span>{subjectConfig[subject]?.emoji ?? '📝'}</span>
                 <span className="hidden sm:inline max-w-[80px] truncate">{subject}</span>
                 <ChevronDown size={12} />
               </button>
               {showSubjectMenu && (
                 <div className="absolute top-9 left-0 z-10 bg-white dark:bg-[#242320] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-2xl shadow-lg p-2 grid grid-cols-2 gap-1 w-56 max-h-52 overflow-y-auto">
-                  {SUBJECTS.map((s) => (
+                  {subjectList.map((s) => (
                     <button
                       key={s}
-                      onClick={() => { setSubject(s); setShowSubjectMenu(false); }}
+                      onClick={() => { setSubject(s as Subject); setShowSubjectMenu(false); }}
                       className={cn(
                         'flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs text-left transition-colors',
                         subject === s ? 'bg-[#FDF0DC] dark:bg-[#2A1F0A] text-[#F4A236]' : 'hover:bg-[#F5F3EF] dark:hover:bg-[#2E2C28] text-[#1A1A1A] dark:text-[#F0EDE8]'
                       )}
                     >
-                      <span>{SUBJECT_CONFIG[s].emoji}</span>
+                      <span>{subjectConfig[s]?.emoji ?? '📝'}</span>
                       <span className="truncate">{s}</span>
                     </button>
                   ))}
+                  {isEtudiant && (
+                    <a
+                      href="/settings"
+                      className="col-span-2 flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-xl text-xs text-[#F4A236] hover:bg-[#FDF0DC] dark:hover:bg-[#2A1F0A] transition-colors border-t border-[#E8E4DF] dark:border-[#2E2C28] mt-1 pt-2"
+                      onClick={() => setShowSubjectMenu(false)}
+                    >
+                      + Nouvelle matière
+                    </a>
+                  )}
                 </div>
               )}
             </div>

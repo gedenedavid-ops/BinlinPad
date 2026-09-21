@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, Plus, X, SlidersHorizontal,
@@ -8,7 +8,8 @@ import {
   LayoutGrid, List, Columns2,
 } from 'lucide-react';
 import { useStore, useFilteredNotes } from '@/store';
-import { SUBJECT_CONFIG, MOOD_CONFIG, cn } from '@/lib/utils';
+import { MOOD_CONFIG, cn } from '@/lib/utils';
+import { useUserContext } from '@/lib/useUserContext';
 import { NoteCard } from '@/components/journal/NoteCard';
 import { NoteEditor } from '@/components/journal/NoteEditor';
 import { PinLockModal } from '@/components/journal/PinLock';
@@ -20,7 +21,6 @@ import { Button } from '@/components/ui/primitives/Button';
 import type { Note, Subject, Mood } from '@/types';
 import type { NoteLayout } from '@/store';
 
-const SUBJECTS = Object.keys(SUBJECT_CONFIG) as Subject[];
 const MOODS = Object.keys(MOOD_CONFIG) as Mood[];
 
 const LAYOUT_ICONS: Record<NoteLayout, React.ElementType> = {
@@ -35,6 +35,7 @@ export default function JournalPage() {
     setSearchQuery, setFilterSubject, setFilterMood,
     openEditor, loadNotes, prefs, updatePrefs,
   } = useStore();
+  const { subjectConfig, subjectList } = useUserContext();
   const filteredNotes = useFilteredNotes();
   const [showFilters, setShowFilters] = useState(false);
   const [viewNote, setViewNote] = useState<Note | null>(null);
@@ -142,10 +143,10 @@ export default function JournalPage() {
                   <div>
                     <p className="text-[10px] font-semibold text-[#9B9590] uppercase tracking-wider mb-1.5">Matière</p>
                     <div className="flex flex-wrap gap-1.5">
-                      {SUBJECTS.map((s) => (
+                      {subjectList.map((s) => (
                         <button
                           key={s}
-                          onClick={() => setFilterSubject(filterSubject === s ? null : s)}
+                          onClick={() => setFilterSubject(filterSubject === s ? null : s as Subject)}
                           className={cn(
                             'flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all',
                             filterSubject === s
@@ -153,7 +154,7 @@ export default function JournalPage() {
                               : 'bg-white dark:bg-[#242320] border border-[#E8E4DF] dark:border-[#2E2C28] text-[#9B9590] hover:border-[#1A1A1A] dark:hover:border-[#F0EDE8] hover:text-[#1A1A1A] dark:hover:text-[#F0EDE8]'
                           )}
                         >
-                          {SUBJECT_CONFIG[s].emoji} {s}
+                          {subjectConfig[s]?.emoji} {s}
                         </button>
                       ))}
                     </div>
@@ -311,7 +312,7 @@ export default function JournalPage() {
             >
               <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-[#E8E4DF] dark:border-[#2E2C28]">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">{SUBJECT_CONFIG[viewNote.subject].emoji}</span>
+                  <span className="text-lg">{subjectConfig[viewNote.subject]?.emoji ?? '📝'}</span>
                   <span className="text-xs font-medium text-[#9B9590]">{viewNote.subject}</span>
                   {viewNote.mood && <span className="text-sm">{MOOD_CONFIG[viewNote.mood].emoji}</span>}
                 </div>

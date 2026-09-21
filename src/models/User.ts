@@ -13,12 +13,26 @@ export interface IUser extends Document {
   updatedAt: Date;
 }
 
+const CustomSubjectSchema = new Schema(
+  {
+    id:    { type: String },
+    label: { type: String },
+    emoji: { type: String },
+    color: { type: String },
+  },
+  { _id: false }
+);
+
 const LearningProfileSchema = new Schema<LearningProfile>(
   {
-    weakSubjects:  { type: [String], default: [] },
-    studiedTopics: { type: [String], default: [] },
-    totalSessions: { type: Number, default: 0 },
-    lastActiveAt:  { type: Date },
+    weakSubjects:   { type: [String], default: [] },
+    studiedTopics:  { type: [String], default: [] },
+    totalSessions:  { type: Number, default: 0 },
+    lastActiveAt:   { type: Date },
+    onboardingDone: { type: Boolean, default: false },
+    schoolLevel:    { type: String },
+    studentField:   { type: String },
+    customSubjects: { type: [CustomSubjectSchema], default: [] },
   },
   { _id: false }
 );
