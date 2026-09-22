@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { useUserContext } from '@/lib/useUserContext';
@@ -9,15 +9,21 @@ import { EleveSteps } from './steps/EleveSteps';
 import { EtudiantSteps } from './steps/EtudiantSteps';
 import type { SchoolLevel, CustomSubject } from '@/types';
 
-type EleveData    = { schoolLevel: SchoolLevel; activeSubjects: string[] };
+type EleveData    = { schoolLevel: SchoolLevel };
 type EtudiantData = { studentField: string; customSubjects: CustomSubject[] };
 
 export default function OnboardingPage() {
   const router = useRouter();
   const { isEleve } = useUserContext();
+  const profileLoaded = useStore((s) => s.profileLoaded);
+  const loadUserProfile = useStore((s) => s.loadUserProfile);
   const completeOnboarding = useStore((s) => s.completeOnboarding);
   const [saving, setSaving] = useState(false);
   const [error,  setError]  = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!profileLoaded) void loadUserProfile();
+  }, [loadUserProfile, profileLoaded]);
 
   async function handleComplete(data: EleveData | EtudiantData) {
     setSaving(true);
@@ -31,11 +37,13 @@ export default function OnboardingPage() {
     }
   }
 
-  if (saving) {
+  if (saving || !profileLoaded) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 min-h-[60vh]">
         <Loader2 size={32} className="animate-spin text-[#F4A236]" />
-        <p className="text-[#9B9590] text-sm font-medium">Préparation de ton espace…</p>
+        <p className="text-[#9B9590] text-sm font-medium">
+          {saving ? 'Préparation de ton espace…' : 'Chargement de ton profil…'}
+        </p>
       </div>
     );
   }

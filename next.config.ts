@@ -1,5 +1,4 @@
-import { withSentryConfig } from '@sentry/nextjs';
-import type { NextConfig } from "next";
+import { withSentryConfig } from '@sentry/nextjs/config'; import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
@@ -11,7 +10,7 @@ const nextConfig: NextConfig = {
     const denyVal = 'DE' + 'NY';
     const sameOriginVal = 'same-origin' + '-allow-popups';
     const hstsVal = 'max-age=31536000;' + ' includeSubDomains';
-    
+
     // Helper pour éviter le pattern "{ key: '...' }" détecté à tort comme secret par le scanner
     const buildHeader = (k: string, v: string) => ({ key: k, value: v });
 

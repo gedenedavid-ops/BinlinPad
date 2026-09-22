@@ -62,7 +62,6 @@ type OnboardingData = {
   schoolLevel?: SchoolLevel;
   studentField?: StudentField;
   customSubjects?: CustomSubject[];
-  activeSubjects?: string[];
 };
 
 type UserProfileSlice = {

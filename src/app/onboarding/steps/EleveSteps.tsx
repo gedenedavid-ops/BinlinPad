@@ -3,13 +3,12 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/primitives/Button';
-import { ELEVE_SUBJECT_CONFIG, ELEVE_SUBJECTS } from '@/lib/subjects';
 import type { SchoolLevel } from '@/types';
 
 const SCHOOL_LEVELS: SchoolLevel[] = ['6ème', '5ème', '4ème', '3ème', '2nde', '1ère', 'Terminale'];
 
 interface EleveStepsProps {
-  onComplete: (data: { schoolLevel: SchoolLevel; activeSubjects: string[] }) => void;
+  onComplete: (data: { schoolLevel: SchoolLevel }) => void;
 }
 
 export function EleveSteps({ onComplete }: EleveStepsProps) {
@@ -17,11 +16,7 @@ export function EleveSteps({ onComplete }: EleveStepsProps) {
 
   const handleComplete = () => {
     if (!schoolLevel) return;
-    onComplete({ 
-      schoolLevel, 
-      // Pour l'élève, on inclut toutes les matières d'office
-      activeSubjects: ELEVE_SUBJECTS as unknown as string[] 
-    });
+    onComplete({ schoolLevel });
   };
 
   return (
