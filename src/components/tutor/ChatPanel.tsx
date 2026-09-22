@@ -15,55 +15,68 @@ import { StreakBadge } from '@/components/ui/progress/StreakBadge';
 import { ChatInput } from './ChatInput';
 import type { ChatMessage } from '@/types';
 
-const BASE_PROMPTS = [
-  'Interroge-moi sur mes dernières notes 🎯',
-  'Quels sujets ai-je étudiés cette semaine ?',
-  'Crée un plan de révision basé sur mes notes',
-];
-
-// Prompts adaptés selon la dernière humeur renseignée — pas de seuil, pas de diagnostic
+// Suggestions courtes et contextuelles, renouvelees selon l'heure et les notes disponibles.
 function useDynamicPrompts(notes: import('@/types').Note[]): string[] {
+  const [hour, setHour] = useState(() => new Date().getHours());
+
+  useEffect(() => {
+    const refreshHour = () => setHour(new Date().getHours());
+    const timer = window.setInterval(refreshHour, 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
   return useMemo(() => {
-    // Humeur de la note la plus récente avec humeur renseignée
-    const lastMoodNote = [...notes]
-      .filter((n) => n.mood)
-      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0];
+    const latestNote = [...notes].sort(
+      (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()
+    )[0];
+    const noteTitle = latestNote?.title || 'mes notes';
+    const noteSubject = latestNote?.subject;
 
-    const prompts = [...BASE_PROMPTS];
-
-    if (!lastMoodNote) {
-      prompts.push(
-        'Aide-moi à comprendre un concept difficile',
-        'Explique-moi les thèmes clés de mes notes'
-      );
-      return prompts;
+    if (notes.length === 0) {
+      if (hour < 12) {
+        return [
+          'Aide-moi à préparer ma séance de travail',
+          'Explique-moi une notion importante pour commencer',
+          'Propose-moi un petit exercice pour me mettre en route',
+        ];
+      }
+      if (hour < 18) {
+        return [
+          'Aide-moi à organiser une séance de révision efficace',
+          'Fais-moi découvrir une notion avec un exemple concret',
+          'Propose-moi un exercice adapté à mon niveau',
+        ];
+      }
+      return [
+        'Aide-moi à faire le point sur ce que je dois retenir',
+        'Propose-moi une révision légère pour ce soir',
+        'Explique-moi une notion difficile simplement',
+      ];
     }
 
-    // Un seul prompt contextuel selon la dernière humeur enregistrée par l'élève
-    switch (lastMoodNote.mood) {
-      case 'confused':
-        prompts.push(`Explique-moi le cours "${lastMoodNote.title}" autrement`);
-        prompts.push('Fais-moi un quiz sur les points que j\'ai trouvé difficiles');
-        break;
-      case 'anxious':
-        prompts.push('Fais-moi un quiz rapide pour me préparer 😰');
-        prompts.push('Qu\'est-ce que je sais déjà bien dans mes notes ?');
-        break;
-      case 'motivated':
-      case 'focused':
-        prompts.push('Je suis en forme — approfondissons un sujet 🔥');
-        prompts.push('Crée-moi un quiz plus difficile sur mes notes');
-        break;
-      case 'tired':
-        prompts.push('Résume-moi l\'essentiel de mes notes en quelques points');
-        prompts.push('Qu\'est-ce que je dois absolument retenir pour l\'exam ?');
-        break;
-      default:
-        prompts.push('Aide-moi à comprendre un concept de mes notes');
-    }
+    const timePrompts = hour < 12
+      ? [
+          `Aide-moi à préparer ma séance sur ${noteSubject || 'mes cours'}`,
+          `Fais-moi démarrer avec un quiz sur « ${noteTitle} »`,
+        ]
+      : hour < 18
+        ? [
+            `Fais-moi réviser « ${noteTitle} » avec des questions progressives`,
+            `Aide-moi à relier mes idées en ${noteSubject || 'cours'}`,
+          ]
+        : [
+            `Résume l'essentiel de « ${noteTitle} » pour ma révision`,
+            `Fais-moi un rappel rapide sur ${noteSubject || 'mes dernières notes'}`,
+          ];
 
-    return prompts.slice(0, 6);
-  }, [notes]);
+    const moodPrompt = latestNote?.mood === 'confused'
+      ? `Reprends « ${noteTitle} » autrement, avec une analogie`
+      : latestNote?.mood === 'tired'
+        ? `Aide-moi à retenir « ${noteTitle} » en trois points`
+        : `Teste ma compréhension de « ${noteTitle} » sans me donner les réponses tout de suite`;
+
+    return [...timePrompts, moodPrompt];
+  }, [hour, notes]);
 }
 
 function MessageBubble({
