@@ -460,7 +460,7 @@ export default function SettingsPage() {
                       key={value}
                       onClick={() => updatePrefs({ theme: value })}
                       className={cn(
-                        'flex items-center gap-2 flex-1 px-4 py-3 rounded-xl border text-sm font-medium transition-all',
+                        'flex items-center gap-2 flex-1 px-4 py-3 rounded-xl border text-sm font-medium transition-[color,background-color,border-color,box-shadow,transform]',
                         prefs.theme === value
                           ? 'bg-[#1A1A1A] dark:bg-white text-white dark:text-[#1A1A1A] border-[#1A1A1A] dark:border-white'
                           : 'bg-white dark:bg-[#242320] text-[#9B9590] border-[#E8E4DF] dark:border-[#2E2C28] hover:border-[#1A1A1A] dark:hover:border-white hover:text-[#1A1A1A] dark:hover:text-white'
@@ -503,7 +503,7 @@ export default function SettingsPage() {
                       key={value}
                       onClick={() => updatePrefs({ language: value })}
                       className={cn(
-                        'flex items-center gap-2 flex-1 px-3 py-2.5 rounded-xl border text-xs font-medium transition-all',
+                        'flex items-center gap-2 flex-1 px-3 py-2.5 rounded-xl border text-xs font-medium transition-[color,background-color,border-color,box-shadow,transform]',
                         prefs.language === value
                           ? 'bg-[#1A1A1A] dark:bg-[#F0EDE8] text-white dark:text-[#1A1A1A] border-[#1A1A1A] dark:border-[#F0EDE8]'
                           : 'bg-white dark:bg-[#242320] text-[#9B9590] border-[#E8E4DF] dark:border-[#2E2C28] hover:border-[#1A1A1A] dark:hover:border-[#F0EDE8] hover:text-[#1A1A1A] dark:hover:text-[#F0EDE8]'
