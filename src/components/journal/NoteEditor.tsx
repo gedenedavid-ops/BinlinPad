@@ -30,7 +30,7 @@ const COLORS: Array<{ key: 'default' | 'ochre' | 'dark'; label: string; preview:
 
 export function NoteEditor() {
   const { editorOpen, editingNoteId, closeEditor, notes, addNote, updateNote, addToast } = useStore();
-  const { subjectConfig, subjectList, isEtudiant } = useUserContext();
+  const { subjectConfig, subjectList, isEleve, isEtudiant } = useUserContext();
 
   const existingNote = editingNoteId ? notes.find((n) => n.id === editingNoteId) : null;
 
@@ -357,8 +357,8 @@ export function NoteEditor() {
               )}
             </div>
 
-            {/* Color Picker */}
-            <div className="relative">
+            {/* Color Picker — manuel pour les étudiants uniquement */}
+            {!isEleve && <div className="relative">
               <button
                 onClick={() => { setShowColorMenu(!showColorMenu); setShowSubjectMenu(false); setShowMoodMenu(false); }}
                 className="p-1.5 bg-[#F5F3EF] dark:bg-[#242320] rounded-xl hover:bg-[#EDE9E3] dark:hover:bg-[#2E2C28] transition-colors"
@@ -379,7 +379,7 @@ export function NoteEditor() {
                   ))}
                 </div>
               )}
-            </div>
+            </div>}
 
             {/* Lock toggle */}
             <button

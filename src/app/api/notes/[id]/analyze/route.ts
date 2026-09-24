@@ -5,6 +5,7 @@ import { Note } from '@/models/Note';
 import { z } from 'zod';
 
 const DEEPSEEK_API_URL  = 'https://api.deepseek.com/chat/completions';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 const QDRANT_URL             = process.env.QDRANT_URL ?? 'http://localhost:6333';
 const QDRANT_API_KEY         = process.env.QDRANT_API_KEY;
 // Curriculum ivoirien — compte Qdrant séparé
@@ -94,6 +95,25 @@ async function callDeepSeek(systemPrompt: string, userContent: string, apiKey: s
   return data.choices?.[0]?.message?.content ?? '';
 }
 
+async function callGemini(prompt: string, apiKey: string): Promise<string> {
+  const res = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.1,
+        topP: 0.8,
+        maxOutputTokens: 3000,
+      },
+    }),
+  });
+
+  if (!res.ok) throw new Error(`Gemini error: ${res.status}`);
+  const data = await res.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+}
+
 // ─── POST /api/notes/[id]/analyze ─────────────────────────────────────────────
 // Corps : { mode: 'compare' | 'correct' | 'complete' }
 //
@@ -110,9 +130,6 @@ export async function POST(request: Request, { params }: Params) {
   }
 
   const apiKey = process.env.DEEPSEEK_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json({ error: 'DEEPSEEK_API_KEY non configuré' }, { status: 503 });
-  }
 
   const rawBody = await request.json();
   const parsedBody = AnalyzeBodySchema.safeParse(rawBody);
@@ -120,6 +137,13 @@ export async function POST(request: Request, { params }: Params) {
     return NextResponse.json({ error: 'Mode invalide. Valeurs acceptées : compare, correct, complete, flashcards, exam' }, { status: 400 });
   }
   const { mode }: { mode: AnalyzeMode } = parsedBody.data;
+
+  if (mode === 'correct' && !process.env.GEMINI_API_KEY) {
+    return NextResponse.json({ error: 'GEMINI_API_KEY non configuré pour la correction scolaire' }, { status: 503 });
+  }
+  if (mode !== 'correct' && !apiKey) {
+    return NextResponse.json({ error: 'DEEPSEEK_API_KEY non configuré' }, { status: 503 });
+  }
 
   await connectDB();
 
@@ -144,7 +168,7 @@ Règles :
 - Adapte la difficulté au niveau collège/lycée ivoirien
 - Aucun texte avant la première flashcard ni après la dernière`;
 
-      result = await callDeepSeek(systemPrompt, noteText, apiKey);
+      result = await callDeepSeek(systemPrompt, noteText, apiKey!);
 
     } else if (mode === 'exam') {
       // ── Mode examen blanc ──────────────────────────────────────────────────
@@ -181,16 +205,26 @@ Génère un examen blanc complet basé sur la note fournie. Format :
 
 Sois précis, juste et adapté au niveau du lycée ivoirien.${!curriculumContext ? '\n(Programme officiel non disponible — base-toi sur tes connaissances générales)' : ''}`;
 
-      result = await callDeepSeek(systemPrompt, `Note de base :\n${noteText}`, apiKey);
+      result = await callDeepSeek(systemPrompt, `Note de base :\n${noteText}`, apiKey!);
 
     } else if (mode === 'correct') {
-      // ── Mode correction — pas besoin de RAG, juste DeepSeek ────────────────
+      // ── Mode correction — Gemini pour une relecture scolaire plus rigoureuse ─
       const systemPrompt = `Tu es un correcteur bienveillant pour un élève ivoirien.
 Corrige le texte suivant en signalant :
 1. Les fautes d'orthographe (surligne avec ~~mot~~ → **correction**)
 2. Les fautes de grammaire ou de syntaxe
 3. Les formulations maladroites (propose une version améliorée)
 4. Un bilan final en 2-3 phrases
+
+    Règles impératives de mise en forme :
+    - Préserve toutes les formules mathématiques en LaTeX valide entre $...$ pour l'inline et $$...$$ pour les formules affichées.
+    - Si le texte source contient des formules aplaties ou corrompues (par exemple « ax2 », « x1 » ou « a=0 »), reconstruis-les en LaTeX : $ax^2+bx+c=0$, $x_1$ et $a\\ne0$.
+    - Utilise ^ pour les puissances, _ pour les indices, \\frac{...}{...} pour les fractions et \\sqrt{...} pour les racines.
+    - Écris les solutions sous une forme lisible, par exemple $$x_1=\\frac{-b-\\sqrt{\\Delta}}{2a}$$.
+    - Ne transforme jamais une formule en texte brut ni en symboles Unicode cassés.
+    - Mets toujours un espace et un retour à la ligne après un titre ou une étiquette suivie de « : ».
+    - Pour les unités, utilise par exemple $10\\,\\text{m}$.
+    - N'inclus pas de correction sur les métadonnées « Titre » ou « Matière » : corrige uniquement le contenu de la note.
 
 Format de réponse :
 ## ✏️ Corrections
@@ -202,7 +236,13 @@ Format de réponse :
 ## 🏆 Bilan
 [encouragement + points forts du texte]`;
 
-      result = await callDeepSeek(systemPrompt, noteText, apiKey);
+      result = await callGemini(
+        `${systemPrompt}
+
+Texte à corriger :
+${note.content}`,
+        process.env.GEMINI_API_KEY!
+      );
 
     } else {
       // ── Modes compare et complete — RAG curriculum requis ──────────────────
@@ -238,7 +278,7 @@ Analyse la note et réponds avec ce format exact :
 
 Sois précis, factuel, et bienveillant.${!curriculumContext ? '\n(Programme officiel non disponible — base-toi sur tes connaissances générales du curriculum ivoirien)' : ''}`;
 
-        result = await callDeepSeek(systemPrompt, `Note à analyser :\n${noteText}`, apiKey);
+        result = await callDeepSeek(systemPrompt, `Note à analyser :\n${noteText}`, apiKey!);
 
       } else {
         // mode === 'complete'
@@ -257,7 +297,7 @@ Format de réponse :
 
 Reste dans le cadre du curriculum ivoirien.${!curriculumContext ? '\n(Programme officiel non disponible — base-toi sur tes connaissances générales du curriculum ivoirien)' : ''}`;
 
-        result = await callDeepSeek(systemPrompt, `Note à compléter :\n${noteText}`, apiKey);
+        result = await callDeepSeek(systemPrompt, `Note à compléter :\n${noteText}`, apiKey!);
       }
     }
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { useUserContext } from '@/lib/useUserContext';
 import { useStore } from '@/store';
@@ -14,6 +15,7 @@ type EtudiantData = { studentField: string; customSubjects: CustomSubject[] };
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { update: updateSession } = useSession();
   const { isEleve } = useUserContext();
   const profileLoaded = useStore((s) => s.profileLoaded);
   const loadUserProfile = useStore((s) => s.loadUserProfile);
@@ -30,6 +32,7 @@ export default function OnboardingPage() {
     setError(null);
     try {
       await completeOnboarding(data);
+      await updateSession({ onboardingDone: true });
       router.replace('/journal');
     } catch {
       setSaving(false);

@@ -96,10 +96,22 @@ export const { handlers, auth } = NextAuth({
     },
 
     // Injecte l'id MongoDB dans le JWT
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, trigger }) {
       // Connexion initiale — on stocke l'id
       if (user?.id) {
         token.id = user.id;
+      }
+
+      // Refresh immediately after onboarding instead of waiting for the TTL cache.
+      if (trigger === 'update' && token.id) {
+        try {
+          await connectDB();
+          const dbUser = await User.findById(token.id)
+            .select('learningProfile.onboardingDone')
+            .lean();
+          token.onboardingDone = dbUser?.learningProfile?.onboardingDone ?? false;
+          onboardingCache.set(token.id as string, Boolean(token.onboardingDone));
+        } catch { /* keep the current token value */ }
       }
 
       // Pour OAuth : l'id vient de MongoDB, pas du provider

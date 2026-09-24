@@ -31,11 +31,13 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
 };
 
-export default withSentryConfig(nextConfig, {
-  silent: true,
-  org: "binlinpad",
-  project: "binlinpad",
-  // hideSourceMaps: true,
-  // disableLogger: true,
-  // automaticVercelMonitors: false,
-});
+export default process.env.NODE_ENV === 'production'
+  ? withSentryConfig(nextConfig, {
+      silent: true,
+      org: "binlinpad",
+      project: "binlinpad",
+      // hideSourceMaps: true,
+      // disableLogger: true,
+      // automaticVercelMonitors: false,
+    })
+  : nextConfig;

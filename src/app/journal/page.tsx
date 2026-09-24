@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, Plus, X, SlidersHorizontal,
-  BookOpen, TrendingUp, Zap, Clock,
-  LayoutGrid, List, Columns2,
+  Folder,
 } from 'lucide-react';
 import { useStore, useFilteredNotes } from '@/store';
 import { MOOD_CONFIG, cn } from '@/lib/utils';
@@ -14,42 +13,29 @@ import { NoteCard } from '@/components/journal/NoteCard';
 import { NoteEditor } from '@/components/journal/NoteEditor';
 import { PinLockModal } from '@/components/journal/PinLock';
 import { MoodDashboard } from '@/components/journal/MoodDashboard';
-import { WeeklyReport } from '@/components/journal/WeeklyReport';
 import { NoteCardSkeleton } from '@/components/ui/feedback/Skeleton';
 import { StreakBadge } from '@/components/ui/progress/StreakBadge';
 import { Button } from '@/components/ui/primitives/Button';
 import type { Note, Subject, Mood } from '@/types';
-import type { NoteLayout } from '@/store';
 
 const MOODS = Object.keys(MOOD_CONFIG) as Mood[];
-
-const LAYOUT_ICONS: Record<NoteLayout, React.ElementType> = {
-  masonry: Columns2,
-  grid:    LayoutGrid,
-  list:    List,
-};
 
 export default function JournalPage() {
   const {
     notes, notesLoaded, searchQuery, filterSubject, filterMood,
     setSearchQuery, setFilterSubject, setFilterMood,
-    openEditor, loadNotes, prefs, updatePrefs,
+    openEditor, loadNotes, prefs,
   } = useStore();
-  const { subjectConfig, subjectList } = useUserContext();
+  const { subjectConfig, subjectList, isEleve } = useUserContext();
   const filteredNotes = useFilteredNotes();
+  const visibleNotes = isEleve && !filterSubject ? [] : filteredNotes;
   const [showFilters, setShowFilters] = useState(false);
   const [viewNote, setViewNote] = useState<Note | null>(null);
 
   useEffect(() => { loadNotes(); }, [loadNotes]);
 
   // Stats
-  const totalWords = notes.reduce((acc, n) => acc + n.wordCount, 0);
   const subjectsSet = new Set(notes.map((n) => n.subject));
-  const todayNotes = notes.filter((n) => {
-    const today = new Date();
-    return n.createdAt.getDate() === today.getDate() &&
-      n.createdAt.getMonth() === today.getMonth();
-  });
 
   const hasFilters = filterSubject || filterMood || searchQuery;
 
@@ -106,27 +92,6 @@ export default function JournalPage() {
               <SlidersHorizontal size={15} />
               <span className="hidden sm:inline">Filtrer</span>
             </button>
-            {/* Layout switcher */}
-            <div className="hidden sm:flex items-center gap-1 bg-white dark:bg-[#242320] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-xl p-1">
-              {(['masonry', 'grid', 'list'] as NoteLayout[]).map((layout) => {
-                const Icon = LAYOUT_ICONS[layout];
-                return (
-                  <button
-                    key={layout}
-                    onClick={() => updatePrefs({ noteLayout: layout })}
-                    className={cn(
-                      'p-1.5 rounded-lg transition-all',
-                      prefs.noteLayout === layout
-                        ? 'bg-[#F5F3EF] dark:bg-[#2E2C28] text-[#1A1A1A] dark:text-[#F0EDE8]'
-                        : 'text-[#C8C4BE] hover:text-[#9B9590]'
-                    )}
-                    title={layout === 'masonry' ? 'Mosaïque' : layout === 'grid' ? 'Grille' : 'Liste'}
-                  >
-                    <Icon size={15} />
-                  </button>
-                );
-              })}
-            </div>
           </div>
 
           {/* Panneau de filtres */}
@@ -197,37 +162,64 @@ export default function JournalPage() {
 
       {/* Contenu principal */}
       <div className="flex-1 px-5 md:px-8 py-5 overflow-y-auto">
-        {/* Rapport hebdomadaire */}
-        {!hasFilters && <WeeklyReport notes={notes} />}
-
         {/* Dashboard humeur */}
         {!hasFilters && <MoodDashboard notes={notes} />}
 
-        {/* Statistiques */}
-        {!hasFilters && notes.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            {[
-              { label: 'Notes totales',     value: notes.length,        icon: BookOpen,  color: '#F4A236', bg: '#FDF0DC' },
-              { label: "Notes aujourd'hui", value: todayNotes.length,   icon: Clock,     color: '#3B82F6', bg: '#EFF6FF' },
-              { label: 'Matières',          value: subjectsSet.size,    icon: TrendingUp,color: '#10B981', bg: '#ECFDF5' },
-              { label: 'Mots écrits',       value: totalWords > 999 ? `${(totalWords/1000).toFixed(1)}k` : totalWords, icon: Zap, color: '#8B5CF6', bg: '#F5F3FF' },
-            ].map(({ label, value, icon: Icon, color, bg }) => (
-              <motion.div
-                key={label}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-white dark:bg-[#1C1B19] rounded-2xl p-4 border border-[#E8E4DF] dark:border-[#2E2C28]"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: bg }}>
-                    <Icon size={15} style={{ color }} />
-                  </div>
-                </div>
-                <p className="text-xl font-bold text-[#1A1A1A] dark:text-[#F0EDE8]">{value}</p>
-                <p className="text-[11px] text-[#9B9590] mt-0.5">{label}</p>
-              </motion.div>
-            ))}
-          </div>
+        {/* Dossiers de matières — les matières élèves sont prédéfinies */}
+        {isEleve && !searchQuery && !filterMood && (
+          <section className="mb-6" aria-labelledby="subject-folders-title">
+            <div className="mb-3 flex items-center justify-between">
+              <div>
+                <h2 id="subject-folders-title" className="text-sm font-bold text-[#1A1A1A] dark:text-[#F0EDE8]">
+                  Mes matières
+                </h2>
+                <p className="mt-0.5 text-xs text-[#9B9590]">Tes notes se rangent automatiquement dans le bon dossier.</p>
+              </div>
+              {filterSubject && (
+                <button
+                  type="button"
+                  onClick={() => setFilterSubject(null)}
+                  className="text-xs font-medium text-[#F4A236] hover:underline"
+                >
+                  Voir tout
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
+              {subjectList.map((subject) => {
+                const config = subjectConfig[subject];
+                const noteCount = notes.filter((note) => note.subject === subject).length;
+                const isSelected = filterSubject === subject;
+
+                return (
+                  <button
+                    key={subject}
+                    type="button"
+                    onClick={() => setFilterSubject(isSelected ? null : subject as Subject)}
+                    className={cn(
+                      'group relative overflow-hidden rounded-2xl border p-3 text-left transition-all hover:-translate-y-0.5 hover:shadow-md',
+                      isSelected ? 'ring-2 ring-[#1A1A1A] dark:ring-[#F0EDE8]' : 'border-[#E8E4DF] dark:border-[#2E2C28]'
+                    )}
+                    style={{ backgroundColor: config?.bg ?? '#F5F3EF', borderColor: isSelected ? config?.color : undefined }}
+                  >
+                    <Folder
+                      size={28}
+                      strokeWidth={1.8}
+                      fill={config?.color ?? '#9B9590'}
+                      className="mb-3 transition-transform group-hover:scale-105"
+                      style={{ color: config?.color ?? '#9B9590' }}
+                    />
+                    <span className="block truncate text-xs font-bold text-[#1A1A1A] dark:text-[#1A1A1A]">
+                      {subject}
+                    </span>
+                    <span className="mt-1 block text-[11px] text-[#6B6660]">
+                      {noteCount} note{noteCount > 1 ? 's' : ''}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
         )}
 
         {/* Grille de notes — skeleton pendant le chargement initial */}
@@ -239,20 +231,21 @@ export default function JournalPage() {
               </div>
             ))}
           </div>
-        ) : filteredNotes.length === 0 ? (
+        ) : visibleNotes.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-16 h-16 rounded-3xl bg-[#F5F3EF] dark:bg-[#242320] flex items-center justify-center mb-4">
-              <BookOpen size={24} className="text-[#C8C4BE]" />
-            </div>
             <h3 className="text-[#1A1A1A] dark:text-[#F0EDE8] font-semibold mb-1">
-              {hasFilters ? 'Aucune note ne correspond' : 'Aucune note pour l\'instant'}
+              {isEleve && !filterSubject
+                ? 'Choisis une matière'
+                : hasFilters ? 'Aucune note ne correspond' : 'Aucune note pour l\'instant'}
             </h3>
             <p className="text-[#9B9590] text-sm max-w-xs">
-              {hasFilters
+              {isEleve && !filterSubject
+                ? 'Clique sur un dossier pour afficher les notes de cette matière.'
+                : hasFilters
                 ? 'Essaie d\'ajuster ta recherche ou tes filtres.'
                 : 'Commence à capturer tes cours, idées et réflexions. Ta première note est à un clic.'}
             </p>
-            {!hasFilters && (
+            {!hasFilters && !isEleve && (
               <Button variant="dark" size="md" className="mt-5" onClick={() => openEditor()}>
                 <Plus size={16} /> Écrire ma première note
               </Button>

@@ -22,11 +22,17 @@ interface NoteCardProps {
 export function NoteCard({ note, onOpen, index = 0, listMode = false }: NoteCardProps) {
   const { pinNote, toggleFavorite, deleteNote, openEditor, openPinModal, addToast } = useStore();
   const isUnlocked = useStore((s) => s.unlockedNoteIds.includes(note.id));
-  const { subjectConfig: allSubjectConfig } = useUserContext();
+  const { subjectConfig: allSubjectConfig, isEleve } = useUserContext();
   const [menuOpen, setMenuOpen] = useState(false);
   const subjectConfig = allSubjectConfig[note.subject];
   const moodConfig = note.mood ? MOOD_CONFIG[note.mood] : null;
-  const colors = NOTE_COLORS[note.color ?? 'default'];
+  const colors = isEleve
+    ? {
+        bg: subjectConfig?.bg ?? '#F5F3EF',
+        text: subjectConfig?.color ?? '#9B9590',
+        border: `${subjectConfig?.color ?? '#9B9590'}55`,
+      }
+    : NOTE_COLORS[note.color ?? 'default'];
 
   const isLocked = note.isLocked && !isUnlocked;
 
@@ -57,7 +63,7 @@ export function NoteCard({ note, onOpen, index = 0, listMode = false }: NoteCard
           <div className="flex items-center gap-2 mb-0.5">
             <h3 className={cn(
               'font-semibold text-sm truncate',
-              note.color === 'dark' || note.color === 'ochre' ? 'text-white' : 'text-[#1A1A1A]'
+              !isEleve && (note.color === 'dark' || note.color === 'ochre') ? 'text-white' : 'text-[#1A1A1A]'
             )}>
               {note.title || 'Note sans titre'}
             </h3>
@@ -68,7 +74,7 @@ export function NoteCard({ note, onOpen, index = 0, listMode = false }: NoteCard
           {!isLocked && (
             <p className={cn(
               'text-xs truncate',
-              note.color === 'dark' || note.color === 'ochre' ? 'text-white/70' : 'text-[#9B9590]'
+              !isEleve && (note.color === 'dark' || note.color === 'ochre') ? 'text-white/70' : 'text-[#9B9590]'
             )}>
               {truncate(note.content, 80)}
             </p>
@@ -136,8 +142,8 @@ export function NoteCard({ note, onOpen, index = 0, listMode = false }: NoteCard
             <SubjectBadge
               emoji={subjectConfig?.emoji ?? '📝'}
               label={note.subject}
-              color={note.color === 'dark' || note.color === 'ochre' ? 'rgba(255,255,255,0.8)' : (subjectConfig?.color ?? '#9B9590')}
-              bg={note.color === 'dark' || note.color === 'ochre' ? 'rgba(255,255,255,0.15)' : (subjectConfig?.bg ?? '#F5F3EF')}
+              color={!isEleve && (note.color === 'dark' || note.color === 'ochre') ? 'rgba(255,255,255,0.8)' : (subjectConfig?.color ?? '#9B9590')}
+              bg={!isEleve && (note.color === 'dark' || note.color === 'ochre') ? 'rgba(255,255,255,0.15)' : (subjectConfig?.bg ?? '#F5F3EF')}
             />
             {moodConfig && (
               <span className="text-sm" title={moodConfig.label}>{moodConfig.emoji}</span>
@@ -203,7 +209,7 @@ export function NoteCard({ note, onOpen, index = 0, listMode = false }: NoteCard
         {/* Title */}
         <h3 className={cn(
           'font-semibold text-sm leading-snug mb-1.5',
-          note.color === 'dark' || note.color === 'ochre' ? 'text-white' : 'text-[#1A1A1A]'
+          !isEleve && (note.color === 'dark' || note.color === 'ochre') ? 'text-white' : 'text-[#1A1A1A]'
         )}>
           {note.title || 'Sans titre'}
         </h3>

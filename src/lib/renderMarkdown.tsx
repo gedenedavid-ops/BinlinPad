@@ -6,6 +6,27 @@
  */
 
 import React from 'react';
+import katex from 'katex';
+
+function renderMath(expression: string, displayMode: boolean, key: number): React.ReactNode {
+  try {
+    return (
+      <span
+        key={key}
+        className={displayMode ? 'my-2 block overflow-x-auto text-center' : 'whitespace-nowrap'}
+        dangerouslySetInnerHTML={{
+          __html: katex.renderToString(expression.trim(), {
+            displayMode,
+            throwOnError: false,
+            strict: 'ignore',
+          }),
+        }}
+      />
+    );
+  } catch {
+    return <code key={key} className="font-mono">{displayMode ? `$$${expression}$$` : `$${expression}$`}</code>;
+  }
+}
 
 export function renderMarkdown(text: string): React.ReactNode[] {
   const lines = text.split('\n');
@@ -16,19 +37,23 @@ export function renderMarkdown(text: string): React.ReactNode[] {
 
   function renderInline(line: string): React.ReactNode[] {
     const parts: React.ReactNode[] = [];
-    const re = /(\*\*(.+?)\*\*|\*(.+?)\*|`([^`]+)`)/g;
+    const re = /(\$\$([\s\S]+?)\$\$|\$([^$\n]+?)\$|\*\*(.+?)\*\*|\*(.+?)\*|`([^`]+)`)/g;
     let last = 0;
     let m: RegExpExecArray | null;
     while ((m = re.exec(line)) !== null) {
       if (m.index > last) parts.push(line.slice(last, m.index));
       if (m[2] !== undefined)
-        parts.push(<strong key={k()} className="font-semibold">{m[2]}</strong>);
+        parts.push(renderMath(m[2], true, k()));
       else if (m[3] !== undefined)
-        parts.push(<em key={k()}>{m[3]}</em>);
+        parts.push(renderMath(m[3], false, k()));
       else if (m[4] !== undefined)
+        parts.push(<strong key={k()} className="font-semibold">{m[4]}</strong>);
+      else if (m[5] !== undefined)
+        parts.push(<em key={k()}>{m[5]}</em>);
+      else if (m[6] !== undefined)
         parts.push(
           <code key={k()} className="px-1.5 py-0.5 bg-black/10 rounded text-[0.82em] font-mono">
-            {m[4]}
+            {m[6]}
           </code>
         );
       last = m.index + m[0].length;

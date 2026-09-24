@@ -1,6 +1,6 @@
 # BinlinPad — Documentation technique & données personnelles
 
-> Version : 0.1.0 — Dernière mise à jour : juin 2025  
+> Version : 0.1.0 — Dernière mise à jour : septembre 2026  
 > Ce document sert de base à la rédaction des Conditions Générales d'Utilisation (CGU) et de la Politique de Confidentialité.
 
 ---
@@ -27,11 +27,13 @@ L'application est accessible via navigateur web (progressive web app). Il n'exis
 | Framework web | Next.js (App Router) | 16.3.1 | Rendu SSR/CSR + API Routes |
 | Langage | TypeScript | ^5 | Typage statique |
 | UI | React | 19.2.8 | Composants interface |
+| Rendu mathématique | KaTeX | ^0.18.9 | Affichage des formules LaTeX générées par l'IA |
 | State management | Zustand | ^5.0.15 | État global côté client |
 | Base de données | MongoDB via Mongoose | ^9.9.3 | Persistance données utilisateur |
 | Authentification | NextAuth v5 (beta) | ^5.0.0-beta.32 | Sessions JWT + OAuth Google |
 | Chiffrement mots de passe | bcryptjs | ^3.0.3 | Hash côté serveur uniquement |
 | IA tuteur | DeepSeek API (`deepseek-chat`) | externe | Génération des réponses |
+| Correction scolaire | Gemini API (`gemini-2.0-flash`) | externe | Relecture rigoureuse et reconstruction des formules |
 | Embeddings | Voyage AI (`voyage-3`) | externe | Vectorisation notes + questions + historique |
 | Base vectorielle | Qdrant | externe | Recherche sémantique (RAG triple) |
 | Animations | Framer Motion | ^13.1.0 | Transitions UI |
@@ -68,7 +70,10 @@ L'application est accessible via navigateur web (progressive web app). Il n'exis
 
 **Ce que ça fait :**
 - Création, modification, suppression de notes de cours
-- Organisation par matière, tags, couleur, favori, épingle
+- Organisation par matière, dossiers colorés, tags, favori et épingle
+- Pour les élèves : chaque matière prédéfinie possède une couleur et un dossier avec icône `folder` ; les notes restent masquées jusqu'à la sélection d'un dossier, puis apparaissent uniquement dans la matière choisie
+- Pour les étudiants : les matières sont créées et organisées manuellement depuis leur profil ; la couleur de carte reste personnalisable
+- Une note est automatiquement rangée dans le dossier correspondant à la matière sélectionnée dans l'éditeur
 - Verrouillage d'une note par code PIN (hash SHA-256 stocké localement)
 - Indicateur d'humeur optionnel sur chaque note (voir §3.5)
 - Comptage automatique des mots et estimation du temps de lecture
@@ -84,6 +89,7 @@ L'application est accessible via navigateur web (progressive web app). Il n'exis
 | `mood` | Enum optionnel | Humeur au moment de la prise de note (voir §3.5) |
 | `attachments` | Tableau | Liens vers pièces jointes (image, PDF, lien) |
 | `isLocked`, `isPinned`, `isFavorite` | Booléens | Préférences d'affichage |
+| `color` | Enum (`default`, `ochre`, `dark`) | Couleur manuelle de carte pour les étudiants ; les élèves utilisent la couleur de leur matière |
 | `wordCount`, `readTime` | Nombres | Calculés automatiquement, jamais envoyés à l'IA |
 | `createdAt`, `updatedAt` | Dates | Horodatage automatique |
 
@@ -162,7 +168,7 @@ Cinq actions IA + une dictée vocale accessibles depuis la barre de l'éditeur, 
 | Action | Bouton | Ce que l'IA produit |
 |--------|--------|---------------------|
 | **Comparer** | `⇄ Comparer` | Compare la note avec le curriculum officiel — ✅ correct, ⚠️ incomplet, ❌ manquant, 💡 conseil |
-| **Corriger** | `✏️ Corriger` | Corrige fautes d'orthographe, grammaire, syntaxe — corrections expliquées + version corrigée |
+| **Corriger** | `✏️ Corriger` | Gemini corrige les fautes d'orthographe, grammaire et syntaxe — corrections expliquées + version corrigée |
 | **Compléter** | `📖 Compléter` | Génère les paragraphes manquants + plan structuré — bouton "Ajouter à ma note" pour injection directe |
 | **Flashcards** | `🃏 Flashcards` | Génère 5–12 cartes Q/R depuis la note — modal de révision avec flip animé, suivi des cartes maîtrisées, et bouton reset |
 | **Examen blanc** | `📄 Examen blanc` | Crée un devoir complet (3 parties, barème /20) basé sur la note + curriculum — corrigé indicatif inclus |
@@ -183,10 +189,22 @@ Cinq actions IA + une dictée vocale accessibles depuis la barre de l'éditeur, 
 | Extraits du programme officiel (≤ 700 car., top 4) | `compare`, `complete` | Si Qdrant configuré |
 | Instructions système spécifiques au mode | Tous | Toujours |
 
+**Correction scolaire avec Gemini :**
+- Le mode `correct` utilise Gemini `gemini-2.0-flash` avec une température basse (`0.1`) pour privilégier la précision.
+- Les formules existantes sont conservées en LaTeX valide (`$...$` ou `$$...$$`).
+- Les formules aplaties ou corrompues sont reconstruites avec `^`, `_`, `\\frac{...}{...}` et `\\sqrt{...}`.
+- Les unités sont écrites avec une espace fine LaTeX, par exemple `$10\\,\\text{m}$`.
+- Les titres, retours à la ligne et séparations entre étiquettes et contenu sont préservés.
+- Le résultat est rendu par KaTeX dans l'interface ; une formule invalide reste affichée en texte lisible au lieu de casser l'éditeur.
+
 **Ce que DeepSeek ne reçoit PAS :**
 - L'humeur associée à la note
 - Les autres notes de l'utilisateur
 - Le nom, email ou toute donnée personnelle identifiante
+
+**Données envoyées à Gemini pour le mode Correction :**
+- Uniquement le contenu de la note et les instructions de correction.
+- Aucune humeur, aucun autre document, et aucune donnée personnelle identifiante.
 
 ---
 
@@ -295,6 +313,25 @@ Cinq actions IA + une dictée vocale accessibles depuis la barre de l'éditeur, 
 - Lien SOS Amitié CI permanent
 - Export JSON des notes
 
+### 3.11 Environnements MongoDB et disponibilité
+
+**Développement local :**
+- MongoDB est exécuté dans Docker avec un volume persistant `binlinpad-mongo-data`.
+- URI locale : `mongodb://127.0.0.1:27017/binlinpad`.
+- Le conteneur utilise la politique `unless-stopped` afin de redémarrer automatiquement avec Docker.
+- Le volume ne doit pas être supprimé si les comptes et notes locales doivent être conservés.
+
+**Production :**
+- Vercel utilise une URI MongoDB Atlas distincte, configurée dans les variables d'environnement Vercel.
+- `.env.local` est réservé au développement et ne doit jamais remplacer les variables Atlas de production.
+- La route `/api/health/db` vérifie la connexion MongoDB et peut être utilisée pour le monitoring.
+- Une panne MongoDB ne masque pas toute l'interface : les pages publiques restent accessibles et les actions dépendantes de la base renvoient leur erreur spécifique.
+
+**Variables d'environnement :**
+- `.env.local` contient les valeurs locales et n'est jamais commitée.
+- `.env` ne doit pas contenir plusieurs définitions concurrentes de `MONGODB_URI`.
+- Les clés Gemini, DeepSeek, Voyage AI, Qdrant, Google OAuth et les secrets Auth.js restent côté serveur et doivent être renouvelés si elles sont exposées.
+
 **Données stockées localement (localStorage, jamais en base) :**
 - `binlinpad_prefs` : layout, couleur, displayName, hash PIN, langue, activation IA
 
@@ -310,6 +347,7 @@ Cinq actions IA + une dictée vocale accessibles depuis la barre de l'éditeur, 
 | Avatar | MongoDB | Non | — | — |
 | Type profil (élève/étudiant) | MongoDB | Oui | DeepSeek | À chaque message |
 | Notes (titre + contenu + matière) | MongoDB + Qdrant (vecteurs) | Oui | Voyage AI, Qdrant, DeepSeek | À chaque question posée |
+| Contenu corrigé par l'utilisateur | MongoDB | Oui | Gemini | Uniquement lors de l'action « Corriger » |
 | Humeur par note | MongoDB | **Non** | — | Jamais |
 | Conversations (messages) | MongoDB | Oui | DeepSeek | À chaque message (20 derniers) |
 | Historique chat vectorisé | Qdrant (vecteurs) | Oui | Voyage AI, Qdrant | Indexé après chaque réponse |
