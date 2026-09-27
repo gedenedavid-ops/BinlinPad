@@ -5,21 +5,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Lock, Unlock, Pin,
   AlignLeft, Tag, Smile, Palette, ChevronDown,
-  GitCompare, Pencil, BookPlus, Loader2, ChevronUp,
-  Layers, FileText, Mic, MicOff, ScanText,
+  GitCompare, Pencil, BookPlus, Loader2, ChevronUp, Check, Info,
+  Mic, MicOff, ScanText,
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { MOOD_CONFIG, generateId, countWords, estimateReadTime, cn } from '@/lib/utils';
 import { renderMarkdown } from '@/lib/renderMarkdown';
 import { useUserContext } from '@/lib/useUserContext';
 import { Button } from '@/components/ui/primitives/Button';
-import { FlashcardsModal, type Flashcard } from '@/components/journal/FlashcardsModal';
 import type { Subject, Mood, NoteFormData, NoteTag } from '@/types';
 
 // ─── Types IA ─────────────────────────────────────────────────────────────────
 
-type AnalyzeMode = 'compare' | 'correct' | 'complete' | 'flashcards' | 'exam';
+type AnalyzeMode = 'compare' | 'correct' | 'complete';
 type AISuggestion = { mode: AnalyzeMode; result: string } | null;
+type CorrectionIssue = { original: string; correction: string; message: string };
+type CorrectionReport = { errorCount: number; correctedText: string; corrections: CorrectionIssue[] };
 
 const MOODS = Object.keys(MOOD_CONFIG) as Mood[];
 const COLORS: Array<{ key: 'default' | 'ochre' | 'dark'; label: string; preview: string }> = [
@@ -51,12 +52,18 @@ export function NoteEditor() {
   // ── IA inline ──────────────────────────────────────────────────────────────
   const [aiLoading, setAiLoading] = useState<AnalyzeMode | null>(null);
   const [aiSuggestion, setAiSuggestion] = useState<AISuggestion>(null);
-  const [flashcards, setFlashcards] = useState<Flashcard[] | null>(null);
+  const [correctionLoading, setCorrectionLoading] = useState(false);
+  const [correctionReport, setCorrectionReport] = useState<CorrectionReport | null>(null);
 
   // ── Dictée vocale ──────────────────────────────────────────────────────────
   const [isRecording, setIsRecording] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (!editorOpen) recognitionRef.current?.stop();
+    return () => recognitionRef.current?.stop();
+  }, [editorOpen]);
 
   // ── OCR ────────────────────────────────────────────────────────────────────
   const [isOcrLoading, setIsOcrLoading] = useState(false);
@@ -127,12 +134,29 @@ export function NoteEditor() {
       setContent((c) => c + (c.endsWith(' ') || c === '' ? '' : ' ') + transcript);
     };
 
-    recognition.onerror = () => { setIsRecording(false); };
-    recognition.onend   = () => { setIsRecording(false); };
+    recognition.onerror = (event: { error?: string }) => {
+      setIsRecording(false);
+      recognitionRef.current = null;
+      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        addToast({ type: 'warning', message: 'Autorise le micro dans ton navigateur pour utiliser la dictée.' });
+      } else if (event.error !== 'no-speech' && event.error !== 'aborted') {
+        addToast({ type: 'warning', message: 'La dictée s’est interrompue. Réessaie.' });
+      }
+    };
+    recognition.onend = () => {
+      setIsRecording(false);
+      recognitionRef.current = null;
+    };
 
     recognitionRef.current = recognition;
-    recognition.start();
-    setIsRecording(true);
+    try {
+      recognition.start();
+      setIsRecording(true);
+    } catch {
+      recognitionRef.current = null;
+      setIsRecording(false);
+      addToast({ type: 'warning', message: 'Impossible de démarrer la dictée. Vérifie l’accès au micro.' });
+    }
   }, [isRecording, addToast]);
 
   // ── OCR via Gemini Vision ───────────────────────────────────────────────────
@@ -209,17 +233,41 @@ export function NoteEditor() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Erreur');
-      if (mode === 'flashcards' && data.flashcards?.length) {
-        setFlashcards(data.flashcards);
-      } else {
-        setAiSuggestion({ mode, result: data.result });
-      }
+      setAiSuggestion({ mode, result: data.result });
     } catch {
       addToast({ type: 'error', message: 'L\'analyse IA a échoué. Réessaie.' });
     } finally {
       setAiLoading(null);
     }
   }, [existingNote?.id, content, addToast]);
+
+  const handleCorrect = async () => {
+    if (!content.trim()) {
+      addToast({ type: 'warning', message: 'La note est vide, rien à corriger.' });
+      return;
+    }
+
+    setCorrectionLoading(true);
+    setCorrectionReport(null);
+    setAiSuggestion(null);
+    try {
+      const response = await fetch('/api/text/correct', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: content, title, subject }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? 'La correction a échoué. Réessaie.');
+      setCorrectionReport(data as CorrectionReport);
+    } catch (error) {
+      addToast({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'La correction a échoué. Réessaie.',
+      });
+    } finally {
+      setCorrectionLoading(false);
+    }
+  };
 
   const handleSave = () => {
     if (!title.trim() && !content.trim()) {
@@ -250,17 +298,6 @@ export function NoteEditor() {
 
   if (!editorOpen) return null;
 
-  // ── Rendu flashcards modal (hors du panel éditeur) ──────────────────────────
-  if (flashcards) {
-    return (
-      <FlashcardsModal
-        cards={flashcards}
-        noteTitle={existingNote?.title ?? title}
-        onClose={() => setFlashcards(null)}
-      />
-    );
-  }
-
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
@@ -283,25 +320,25 @@ export function NoteEditor() {
           exit={{ opacity: 0, y: 40 }}
           transition={{ type: 'spring', stiffness: 350, damping: 32 }}
           className={cn(
-            'relative w-full bg-white dark:bg-[#1C1B19] rounded-t-3xl md:rounded-3xl shadow-2xl flex flex-col overflow-hidden',
-            focusMode ? 'h-[95vh] md:max-w-3xl' : 'h-[85vh] md:max-w-2xl md:h-auto md:max-h-[90vh]'
+            'relative w-[calc(100vw-0.75rem)] sm:w-full bg-white dark:bg-[#1C1B19] rounded-t-3xl md:rounded-3xl shadow-2xl flex flex-col overflow-hidden',
+            focusMode ? 'h-[95vh] max-w-[min(100vw-0.75rem,48rem)] md:max-w-3xl' : 'h-[85vh] max-w-[min(100vw-0.75rem,42rem)] md:max-w-2xl md:h-auto md:max-h-[90vh]'
           )}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Toolbar */}
-          <div className="flex items-center gap-2 px-4 py-3 border-b border-[#E8E4DF] dark:border-[#2E2C28] flex-shrink-0 flex-wrap">
+          <div className="flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-3 border-b border-[#E8E4DF] dark:border-[#2E2C28] flex-shrink-0 flex-wrap">
             {/* Subject Picker */}
             <div className="relative">
               <button
                 onClick={() => { setShowSubjectMenu(!showSubjectMenu); setShowMoodMenu(false); setShowColorMenu(false); }}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#F5F3EF] dark:bg-[#242320] rounded-xl text-xs font-medium text-[#1A1A1A] dark:text-[#F0EDE8] hover:bg-[#EDE9E3] dark:hover:bg-[#2E2C28] transition-colors"
+                className="flex items-center gap-1 sm:gap-1.5 px-2 py-1.5 sm:px-2.5 bg-[#F5F3EF] dark:bg-[#242320] rounded-xl text-[10px] sm:text-xs font-medium text-[#1A1A1A] dark:text-[#F0EDE8] hover:bg-[#EDE9E3] dark:hover:bg-[#2E2C28] transition-colors"
               >
                 <span>{subjectConfig[subject]?.emoji ?? '📝'}</span>
-                <span className="hidden sm:inline max-w-[80px] truncate">{subject}</span>
+                <span className="max-w-[64px] sm:max-w-[80px] truncate">{subject}</span>
                 <ChevronDown size={12} />
               </button>
               {showSubjectMenu && (
-                <div className="absolute top-9 left-0 z-10 bg-white dark:bg-[#242320] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-2xl shadow-lg p-2 grid grid-cols-2 gap-1 w-56 max-h-52 overflow-y-auto">
+                <div className="absolute top-9 left-0 z-10 bg-white dark:bg-[#242320] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-2xl shadow-lg p-2 grid grid-cols-2 gap-1 w-[min(14rem,calc(100vw-4rem))] max-h-52 overflow-y-auto">
                   {subjectList.map((s) => (
                     <button
                       key={s}
@@ -332,14 +369,14 @@ export function NoteEditor() {
             <div className="relative">
               <button
                 onClick={() => { setShowMoodMenu(!showMoodMenu); setShowSubjectMenu(false); setShowColorMenu(false); }}
-                className="flex items-center gap-1 px-2.5 py-1.5 bg-[#F5F3EF] dark:bg-[#242320] rounded-xl text-xs hover:bg-[#EDE9E3] dark:hover:bg-[#2E2C28] transition-colors"
+                className="flex items-center gap-1 px-2 py-1.5 sm:px-2.5 bg-[#F5F3EF] dark:bg-[#242320] rounded-xl text-[10px] sm:text-xs hover:bg-[#EDE9E3] dark:hover:bg-[#2E2C28] transition-colors"
                 title="Set mood"
               >
                 {mood ? <span>{MOOD_CONFIG[mood].emoji}</span> : <Smile size={13} className="text-[#9B9590]" />}
                 <ChevronDown size={12} className="text-[#9B9590]" />
               </button>
               {showMoodMenu && (
-                <div className="absolute top-9 left-0 z-10 bg-white dark:bg-[#242320] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-2xl shadow-lg p-2 flex flex-wrap gap-1 w-48">
+                <div className="absolute top-9 left-0 z-10 bg-white dark:bg-[#242320] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-2xl shadow-lg p-2 flex flex-wrap gap-1 w-[min(12rem,calc(100vw-4rem))]">
                   {MOODS.map((m) => (
                     <button
                       key={m}
@@ -448,17 +485,15 @@ export function NoteEditor() {
             </button>
           </div>
 
-          {/* Barre IA — visible uniquement en mode édition d'une note existante */}
-          {existingNote && (
-          <div className="flex items-center gap-1.5 px-4 py-2 bg-[#FDFAF5] dark:bg-[#242320] border-b border-[#E8E4DF] dark:border-[#2E2C28] flex-shrink-0 flex-wrap">
-            <span className="text-[10px] font-semibold text-[#9B9590] mr-1">IA</span>
-            {(
+          {/* Correction et dictée sont disponibles dès la création. */}
+          <div className="flex items-center gap-1 px-3 py-2 sm:px-4 sm:py-2 bg-[#FDFAF5] dark:bg-[#242320] border-b border-[#E8E4DF] dark:border-[#2E2C28] flex-shrink-0 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            {existingNote && (
+              <>
+              <span className="text-[9px] sm:text-[10px] font-semibold text-[#9B9590] mr-1 whitespace-nowrap">IA</span>
+              {(
               [
-                { mode: 'compare'    as AnalyzeMode, icon: GitCompare, label: 'Comparer'       },
-                { mode: 'correct'    as AnalyzeMode, icon: Pencil,     label: 'Corriger'        },
-                { mode: 'complete'   as AnalyzeMode, icon: BookPlus,   label: 'Compléter'       },
-                { mode: 'flashcards' as AnalyzeMode, icon: Layers,     label: 'Flashcards'      },
-                { mode: 'exam'       as AnalyzeMode, icon: FileText,   label: 'Examen blanc'    },
+                { mode: 'compare'  as AnalyzeMode, icon: GitCompare, label: 'Comparer'  },
+                { mode: 'complete' as AnalyzeMode, icon: BookPlus,   label: 'Compléter' },
               ] as const
             ).map(({ mode, icon: Icon, label }) => (
               <button
@@ -466,7 +501,7 @@ export function NoteEditor() {
                 onClick={() => handleAnalyze(mode)}
                 disabled={!!aiLoading}
                 className={cn(
-                  'flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-medium transition-all',
+                  'flex items-center gap-1 px-2 py-1 rounded-xl text-[9px] sm:text-[10px] font-medium transition-all whitespace-nowrap',
                   aiLoading === mode
                     ? 'bg-[#F4A236] text-white'
                     : 'bg-white dark:bg-[#1C1B19] border border-[#E8E4DF] dark:border-[#2E2C28] text-[#57514C] dark:text-[#9B9590] hover:border-[#F4A236] hover:text-[#F4A236]',
@@ -480,12 +515,34 @@ export function NoteEditor() {
                 {label}
               </button>
             ))}
+              </>
+            )}
+
+            <button
+              onClick={() => void handleCorrect()}
+              disabled={correctionLoading || !!aiLoading}
+              title="Le texte, son titre et sa matière sont transmis à Gemini pour une correction contextualisée."
+              className={cn(
+                'flex items-center gap-1 px-2 py-1 rounded-xl text-[9px] sm:text-[10px] font-medium transition-all whitespace-nowrap',
+                correctionLoading
+                  ? 'bg-[#F4A236] text-white'
+                  : 'bg-white dark:bg-[#1C1B19] border border-[#E8E4DF] dark:border-[#2E2C28] text-[#57514C] dark:text-[#9B9590] hover:border-[#F4A236] hover:text-[#F4A236]'
+              )}
+            >
+              {correctionLoading ? <Loader2 size={10} className="animate-spin" /> : <Pencil size={10} />}
+              Corriger
+            </button>
+            <span className="flex items-center gap-1 whitespace-nowrap text-[9px] text-[#9B9590]" title="Le texte et son contexte sont envoyés à Gemini.">
+              <Info size={10} /> Gemini
+            </span>
 
             {/* Bouton dictée vocale */}
             <button
               onClick={toggleRecording}
+              aria-pressed={isRecording}
+              disabled={!editorOpen}
               className={cn(
-                'flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-medium transition-all',
+                'flex items-center gap-1 px-2 py-1 rounded-xl text-[9px] sm:text-[10px] font-medium transition-all whitespace-nowrap',
                 isRecording
                   ? 'bg-red-500 text-white animate-pulse'
                   : 'bg-white dark:bg-[#1C1B19] border border-[#E8E4DF] dark:border-[#2E2C28] text-[#57514C] dark:text-[#9B9590] hover:border-[#F4A236] hover:text-[#F4A236]'
@@ -497,32 +554,95 @@ export function NoteEditor() {
             </button>
 
           </div>
-        )}
 
           {/* Title */}
-          <div className="px-5 pt-4">
+          <div className="px-4 pt-3 sm:px-5 sm:pt-4">
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Titre de la note…"
-              className="w-full text-xl font-bold text-[#1A1A1A] dark:text-[#F0EDE8] placeholder-[#C8C4BE] bg-transparent border-none focus:outline-none"
+              className="w-full text-lg sm:text-xl font-bold text-[#1A1A1A] dark:text-[#F0EDE8] placeholder-[#C8C4BE] bg-transparent border-none focus:outline-none"
             />
           </div>
 
           {/* Content */}
-          <div className="flex-1 px-5 py-2 overflow-y-auto min-h-0">
+          <div className="flex-1 px-4 py-2 sm:px-5 min-h-0 overflow-y-auto">
             <textarea
               ref={textareaRef}
               value={content}
-              onChange={(e) => { setContent(e.target.value); setAiSuggestion(null); }}
+              onChange={(e) => { setContent(e.target.value); setAiSuggestion(null); setCorrectionReport(null); }}
               placeholder="Commence à écrire… Cours, idées, questions, réflexions. Il n'y a pas de mauvaise façon de prendre des notes."
-              className="w-full h-full min-h-[200px] resize-none text-[#1A1A1A] dark:text-[#F0EDE8] placeholder-[#C8C4BE] bg-transparent text-sm leading-relaxed focus:outline-none note-content"
+              className="w-full h-full min-h-[180px] sm:min-h-[200px] resize-none text-[#1A1A1A] dark:text-[#F0EDE8] placeholder-[#C8C4BE] bg-transparent text-sm leading-relaxed focus:outline-none note-content"
             />
           </div>
 
           {/* Panneau résultat IA */}
           <AnimatePresence>
+
+          <AnimatePresence>
+            {correctionReport && (
+              <motion.section
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                aria-live="polite"
+                className="flex-shrink-0 overflow-hidden border-t border-[#E8E4DF] bg-[#FDFAF5] dark:border-[#2E2C28] dark:bg-[#242320]"
+              >
+                <div className="max-h-64 overflow-y-auto px-5 py-3">
+                  <div className="mb-2 flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-xs font-semibold text-[#1A1A1A] dark:text-[#F0EDE8]">Rapport de correction</h3>
+                      <p className="mt-0.5 text-[11px] text-[#9B9590]">
+                        {correctionReport.errorCount === 0
+                          ? 'Aucune erreur détectée.'
+                          : `${correctionReport.errorCount} point${correctionReport.errorCount > 1 ? 's' : ''} à vérifier`}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setCorrectionReport(null)}
+                      aria-label="Fermer le rapport de correction"
+                      className="rounded-lg p-1 text-[#9B9590] hover:bg-[#EDE9E3] dark:hover:bg-[#2E2C28]"
+                    >
+                      <X size={13} />
+                    </button>
+                  </div>
+
+                  {correctionReport.corrections.length > 0 && (
+                    <ul className="space-y-2">
+                      {correctionReport.corrections.map((issue, index) => (
+                        <li key={`${index}:${issue.original}`} className="text-[11px] leading-relaxed text-[#57514C] dark:text-[#C8C4BE]">
+                          <span className="font-semibold text-red-600 line-through dark:text-red-300">{issue.original || 'Ponctuation'}</span>
+                          {issue.correction && (
+                            <>
+                              <span className="mx-1">→</span>
+                              <span className="font-semibold text-green-700 dark:text-green-300">{issue.correction}</span>
+                            </>
+                          )}
+                          <span className="ml-2 text-[#9B9590]">{issue.message}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {correctionReport.correctedText !== content && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setContent(correctionReport.correctedText);
+                        setCorrectionReport(null);
+                        addToast({ type: 'success', message: 'Suggestions appliquées à la note.' });
+                      }}
+                      className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#F4A236] px-3 py-1.5 text-[11px] font-semibold text-white transition-colors hover:bg-[#E8941E]"
+                    >
+                      <Check size={12} /> Appliquer les suggestions
+                    </button>
+                  )}
+                </div>
+              </motion.section>
+            )}
+          </AnimatePresence>
             {aiSuggestion && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
@@ -567,12 +687,12 @@ export function NoteEditor() {
           </AnimatePresence>
 
           {/* Tags row */}
-          <div className="px-5 py-2 border-t border-[#F5F3EF] dark:border-[#2E2C28] flex flex-wrap items-center gap-1.5">
+          <div className="px-4 py-2 sm:px-5 border-t border-[#F5F3EF] dark:border-[#2E2C28] flex flex-wrap items-center gap-1.5">
             <Tag size={12} className="text-[#9B9590]" />
             {tags.map((tag) => (
               <span
                 key={tag.id}
-                className="flex items-center gap-1 text-[11px] px-2 py-0.5 bg-[#F5F3EF] dark:bg-[#242320] text-[#9B9590] rounded-full"
+                className="flex items-center gap-1 text-[10px] sm:text-[11px] px-2 py-0.5 bg-[#F5F3EF] dark:bg-[#242320] text-[#9B9590] rounded-full"
               >
                 #{tag.label}
                 <button
@@ -592,17 +712,17 @@ export function NoteEditor() {
               }}
               onBlur={addTag}
               placeholder="Ajouter un tag…"
-              className="text-[11px] text-[#9B9590] placeholder-[#C8C4BE] dark:placeholder-[#4A4845] bg-transparent w-20 focus:outline-none"
+              className="text-[10px] sm:text-[11px] text-[#9B9590] placeholder-[#C8C4BE] dark:placeholder-[#4A4845] bg-transparent w-20 focus:outline-none"
             />
           </div>
 
           {/* Footer */}
-          <div className="px-5 py-3 border-t border-[#E8E4DF] dark:border-[#2E2C28] flex items-center justify-between flex-shrink-0">
-            <div className="flex items-center gap-3 text-[11px] text-[#9B9590]">
+          <div className="px-4 py-3 sm:px-5 border-t border-[#E8E4DF] dark:border-[#2E2C28] flex items-center justify-between flex-shrink-0 gap-2">
+            <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-[11px] text-[#9B9590]">
               <span>{wordCount} mot{wordCount > 1 ? 's' : ''}</span>
               <span>~{readTime} min lec.</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <Button variant="secondary" size="sm" onClick={closeEditor}>
                 Annuler
               </Button>

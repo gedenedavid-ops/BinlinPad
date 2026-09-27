@@ -95,6 +95,7 @@ L'application est accessible via navigateur web (progressive web app). Il n'exis
 
 **Partage avec des tiers :**
 - Les notes (titre + contenu + matière) sont envoyées à **DeepSeek** et **Voyage AI** uniquement lorsque l'utilisateur pose une question au tuteur BinlinPad — et uniquement les notes pertinentes à cette question (recherche sémantique).
+- Le contenu soumis à l'action **Corriger**, accompagné du titre et de la matière, est transmis à **Gemini** pour une correction contextualisée, uniquement après clic explicite.
 - Les notes ne sont **jamais** envoyées automatiquement, en masse, ou sans action explicite de l'utilisateur.
 
 ---
@@ -163,12 +164,12 @@ Quand l'IA donne un exercice avec un temps imparti, un chronomètre interactif s
 ### 3.4 IA dans l'éditeur de notes (`/api/notes/[id]/analyze`)
 
 **Ce que ça fait :**
-Cinq actions IA + une dictée vocale accessibles depuis la barre de l'éditeur, sur toute note déjà sauvegardée :
+Les actions de rédaction nécessitant une note sauvegardée, ainsi que la correction et la dictée accessibles dès la création :
 
 | Action | Bouton | Ce que l'IA produit |
 |--------|--------|---------------------|
 | **Comparer** | `⇄ Comparer` | Compare la note avec le curriculum officiel — ✅ correct, ⚠️ incomplet, ❌ manquant, 💡 conseil |
-| **Corriger** | `✏️ Corriger` | Gemini corrige les fautes d'orthographe, grammaire et syntaxe — corrections expliquées + version corrigée |
+| **Corriger** | `✏️ Corriger` | Gemini corrige l'orthographe et la grammaire d'un brouillon ou d'une note en tenant compte du titre, de la matière et du contexte ivoirien — changements expliqués et appliqués uniquement après confirmation |
 | **Compléter** | `📖 Compléter` | Génère les paragraphes manquants + plan structuré — bouton "Ajouter à ma note" pour injection directe |
 | **Flashcards** | `🃏 Flashcards` | Génère 5–12 cartes Q/R depuis la note — modal de révision avec flip animé, suivi des cartes maîtrisées, et bouton reset |
 | **Examen blanc** | `📄 Examen blanc` | Crée un devoir complet (3 parties, barème /20) basé sur la note + curriculum — corrigé indicatif inclus |
@@ -176,7 +177,8 @@ Cinq actions IA + une dictée vocale accessibles depuis la barre de l'éditeur, 
 | **Scanner OCR** | `📷` (toolbar) | Photo ou galerie → Gemini Vision (`gemini-2.0-flash`) transcrit le manuscrit et l'injecte dans la note ; fonctionne sur nouvelle note vierge aussi |
 
 **Comportement UI :**
-- La barre IA n'apparaît que sur les notes **déjà sauvegardées** (pas sur une nouvelle note vierge)
+- Comparer et Compléter apparaissent uniquement sur les notes **déjà sauvegardées**
+- Corriger et Dicter sont disponibles dès la création comme pendant la modification
 - Pendant le chargement, le bouton actif affiche un spinner et les autres sont désactivés
 - Le résultat s'affiche dans un panneau animé entre le textarea et les tags
 - Modifier le contenu ferme automatiquement le panneau (évite la confusion entre version originale et corrigée)
@@ -189,22 +191,21 @@ Cinq actions IA + une dictée vocale accessibles depuis la barre de l'éditeur, 
 | Extraits du programme officiel (≤ 700 car., top 4) | `compare`, `complete` | Si Qdrant configuré |
 | Instructions système spécifiques au mode | Tous | Toujours |
 
-**Correction scolaire avec Gemini :**
-- Le mode `correct` utilise Gemini `gemini-2.0-flash` avec une température basse (`0.1`) pour privilégier la précision.
-- Les formules existantes sont conservées en LaTeX valide (`$...$` ou `$$...$$`).
-- Les formules aplaties ou corrompues sont reconstruites avec `^`, `_`, `\\frac{...}{...}` et `\\sqrt{...}`.
-- Les unités sont écrites avec une espace fine LaTeX, par exemple `$10\\,\\text{m}$`.
-- Les titres, retours à la ligne et séparations entre étiquettes et contenu sont préservés.
-- Le résultat est rendu par KaTeX dans l'interface ; une formule invalide reste affichée en texte lisible au lieu de casser l'éditeur.
+**Correction contextualisée avec Gemini :**
+- Le texte, le titre et la matière courante sont transmis à Gemini après clic explicite sur « Corriger ».
+- Les consignes demandent de préserver le sens, les noms locaux ivoiriens, les sigles et les formules, et de vérifier les accords selon le contexte.
+- BinlinPad ne stocke pas le texte envoyé par cette route et ne remplace pas le brouillon automatiquement.
+- Les changements et leurs explications sont affichés dans l'éditeur ; l'utilisateur choisit s'il applique la correction.
+- L'usage est comptabilisé dans le quota Krékré Gemini.
 
 **Ce que DeepSeek ne reçoit PAS :**
 - L'humeur associée à la note
 - Les autres notes de l'utilisateur
 - Le nom, email ou toute donnée personnelle identifiante
 
-**Données envoyées à Gemini pour le mode Correction :**
-- Uniquement le contenu de la note et les instructions de correction.
-- Aucune humeur, aucun autre document, et aucune donnée personnelle identifiante.
+**Données envoyées à Gemini pour la correction :**
+- Le texte soumis, son titre et sa matière.
+- Aucune humeur ni aucun autre document n'est ajouté à la requête. Le texte saisi peut néanmoins contenir des données personnelles.
 
 ---
 
@@ -347,7 +348,8 @@ Cinq actions IA + une dictée vocale accessibles depuis la barre de l'éditeur, 
 | Avatar | MongoDB | Non | — | — |
 | Type profil (élève/étudiant) | MongoDB | Oui | DeepSeek | À chaque message |
 | Notes (titre + contenu + matière) | MongoDB + Qdrant (vecteurs) | Oui | Voyage AI, Qdrant, DeepSeek | À chaque question posée |
-| Contenu corrigé par l'utilisateur | MongoDB | Oui | Gemini | Uniquement lors de l'action « Corriger » |
+| Texte d'une note après application des corrections | MongoDB | Non (par cette action) | — | Enregistré avec la note après confirmation de l'utilisateur |
+| Texte soumis à correction | Non stocké par cette route | Oui | Gemini | Après clic explicite sur « Corriger » |
 | Humeur par note | MongoDB | **Non** | — | Jamais |
 | Conversations (messages) | MongoDB | Oui | DeepSeek | À chaque message (20 derniers) |
 | Historique chat vectorisé | Qdrant (vecteurs) | Oui | Voyage AI, Qdrant | Indexé après chaque réponse |

@@ -31,7 +31,7 @@ Tu incarnes l'app : quand on te demande ce que tu fais ou ce que BinlinPad propo
 - ✏️ Corriger : correction orthographique, grammaticale et stylistique
 - 📖 Compléter : génère les notions manquantes dans le style de l'élève
 - 🃏 Flashcards : génère 5 à 12 cartes Q/R depuis la note — modal de révision avec flip animé
-- 📄 Examen blanc : crée un devoir complet 3 parties (/20 pts) avec corrigé
+- 📄 Devoirs : crée un devoir complet en 3 parties (/20 pts) avec corrigé
 - 🎤 Dictée vocale : transcription en temps réel via le micro (Web Speech API, sans clé API)
 - 📷 Scanner OCR : photo d'une feuille manuscrite → Gemini Vision transcrit et injecte le texte
 
@@ -258,6 +258,7 @@ Sois factuel, bref, et utile pour la prochaine session.`;
 }
 
 import { z } from 'zod';
+import { getKrekreUsageForUser, isKrekreBlocked, recordKrekreUsage, parseTokenUsage } from '@/lib/krekre';
 
 // ─── Body type ───────────────────────────────────────────────────────────────
 
@@ -305,6 +306,16 @@ export async function POST(request: Request) {
     } = parsed.data;
 
     const userId = session.user.id;
+
+    const krekreCheck = await isKrekreBlocked(userId, 'chat');
+    if (krekreCheck.blocked) {
+      return NextResponse.json({
+        message: krekreCheck.reason ?? 'Krékré atteint. Réessaie plus tard.',
+        sources: [],
+        krekre: krekreCheck.usage,
+        blocked: true,
+      }, { status: 429 });
+    }
 
     const apiKey = process.env.DEEPSEEK_API_KEY;
     if (!apiKey) {
@@ -436,7 +447,20 @@ export async function POST(request: Request) {
     }
 
     const data = await response.json();
+    const usage = parseTokenUsage(data);
     const rawMessage: string = data.choices?.[0]?.message?.content ?? 'Aucune réponse générée.';
+
+    if (usage) {
+      await recordKrekreUsage({
+        userId,
+        provider: 'deepseek',
+        action: 'chat',
+        model: 'deepseek-chat',
+        totalTokens: usage.totalTokens,
+        promptTokens: usage.promptTokens,
+        completionTokens: usage.completionTokens,
+      });
+    }
 
     // ── Extraction du marqueur %%TIMER:NNN%% ──────────────────────────────────
     const timerMatch = rawMessage.match(/%%TIMER:(\d+)%%/);
@@ -454,6 +478,7 @@ export async function POST(request: Request) {
       sources: [],
       sessionSummary,
       curriculumUsed: curriculumSources.length > 0,
+      krekre: await getKrekreUsageForUser(userId),
       ...(timerSeconds ? { timerSeconds } : {}),
     });
 

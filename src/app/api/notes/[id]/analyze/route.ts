@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import { Note } from '@/models/Note';
 import { z } from 'zod';
+import { getKrekreUsageForUser, isKrekreBlocked, recordKrekreUsage, parseTokenUsage } from '@/lib/krekre';
 
 const DEEPSEEK_API_URL  = 'https://api.deepseek.com/chat/completions';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
@@ -75,7 +76,7 @@ async function searchCurriculum(
   }
 }
 
-async function callDeepSeek(systemPrompt: string, userContent: string, apiKey: string): Promise<string> {
+async function callDeepSeek(systemPrompt: string, userContent: string, apiKey: string, userId: string): Promise<string> {
   const res = await fetch(DEEPSEEK_API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
@@ -92,10 +93,22 @@ async function callDeepSeek(systemPrompt: string, userContent: string, apiKey: s
   });
   if (!res.ok) throw new Error(`DeepSeek error: ${res.status}`);
   const data = await res.json();
+  const usage = parseTokenUsage(data);
+  if (usage) {
+    await recordKrekreUsage({
+      userId,
+      provider: 'deepseek',
+      action: 'analyze',
+      model: 'deepseek-chat',
+      totalTokens: usage.totalTokens,
+      promptTokens: usage.promptTokens,
+      completionTokens: usage.completionTokens,
+    });
+  }
   return data.choices?.[0]?.message?.content ?? '';
 }
 
-async function callGemini(prompt: string, apiKey: string): Promise<string> {
+async function callGemini(prompt: string, apiKey: string, userId: string): Promise<string> {
   const res = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -111,6 +124,18 @@ async function callGemini(prompt: string, apiKey: string): Promise<string> {
 
   if (!res.ok) throw new Error(`Gemini error: ${res.status}`);
   const data = await res.json();
+  const usage = parseTokenUsage(data);
+  if (usage) {
+    await recordKrekreUsage({
+      userId,
+      provider: 'gemini',
+      action: 'analyze',
+      model: 'gemini-2.0-flash',
+      totalTokens: usage.totalTokens,
+      promptTokens: usage.promptTokens,
+      completionTokens: usage.completionTokens,
+    });
+  }
   return data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
 }
 
@@ -127,6 +152,14 @@ export async function POST(request: Request, { params }: Params) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+  }
+
+  const krekreCheck = await isKrekreBlocked(session.user.id, 'analyze');
+  if (krekreCheck.blocked) {
+    return NextResponse.json({
+      error: krekreCheck.reason ?? 'Krékré atteint.',
+      krekre: krekreCheck.usage,
+    }, { status: 429 });
   }
 
   const apiKey = process.env.DEEPSEEK_API_KEY;
@@ -168,7 +201,7 @@ Règles :
 - Adapte la difficulté au niveau collège/lycée ivoirien
 - Aucun texte avant la première flashcard ni après la dernière`;
 
-      result = await callDeepSeek(systemPrompt, noteText, apiKey!);
+      result = await callDeepSeek(systemPrompt, noteText, apiKey!, session.user.id);
 
     } else if (mode === 'exam') {
       // ── Mode examen blanc ──────────────────────────────────────────────────
@@ -185,7 +218,7 @@ Règles :
 ${curriculumContext ? `Programme officiel de référence :\n${curriculumContext}\n\n` : ''}
 Génère un examen blanc complet basé sur la note fournie. Format :
 
-## 📝 Examen blanc — ${note.subject}
+## 📝 Devoirs — ${note.subject}
 
 **Durée recommandée :** [X minutes selon la longueur]
 **Barème total :** 20 points
@@ -205,7 +238,7 @@ Génère un examen blanc complet basé sur la note fournie. Format :
 
 Sois précis, juste et adapté au niveau du lycée ivoirien.${!curriculumContext ? '\n(Programme officiel non disponible — base-toi sur tes connaissances générales)' : ''}`;
 
-      result = await callDeepSeek(systemPrompt, `Note de base :\n${noteText}`, apiKey!);
+      result = await callDeepSeek(systemPrompt, `Note de base :\n${noteText}`, apiKey!, session.user.id);
 
     } else if (mode === 'correct') {
       // ── Mode correction — Gemini pour une relecture scolaire plus rigoureuse ─
@@ -241,7 +274,8 @@ Format de réponse :
 
 Texte à corriger :
 ${note.content}`,
-        process.env.GEMINI_API_KEY!
+        process.env.GEMINI_API_KEY!,
+        session.user.id
       );
 
     } else {
@@ -278,7 +312,7 @@ Analyse la note et réponds avec ce format exact :
 
 Sois précis, factuel, et bienveillant.${!curriculumContext ? '\n(Programme officiel non disponible — base-toi sur tes connaissances générales du curriculum ivoirien)' : ''}`;
 
-        result = await callDeepSeek(systemPrompt, `Note à analyser :\n${noteText}`, apiKey!);
+        result = await callDeepSeek(systemPrompt, `Note à analyser :\n${noteText}`, apiKey!, session.user.id);
 
       } else {
         // mode === 'complete'
@@ -297,7 +331,7 @@ Format de réponse :
 
 Reste dans le cadre du curriculum ivoirien.${!curriculumContext ? '\n(Programme officiel non disponible — base-toi sur tes connaissances générales du curriculum ivoirien)' : ''}`;
 
-        result = await callDeepSeek(systemPrompt, `Note à compléter :\n${noteText}`, apiKey!);
+        result = await callDeepSeek(systemPrompt, `Note à compléter :\n${noteText}`, apiKey!, session.user.id);
       }
     }
 

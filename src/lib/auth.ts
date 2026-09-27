@@ -78,12 +78,8 @@ export const { handlers, auth } = NextAuth({
         const existing = await User.findOne({ email: user.email! }).lean();
 
         if (!existing) {
-          await User.create({
-            name:         user.name ?? user.email!.split('@')[0],
-            email:        user.email!.toLowerCase(),
-            passwordHash: '',
-            image:        user.image ?? undefined,
-          });
+          // New OAuth accounts remain disabled until the OAuth flow records the legal consent.
+          return false;
         } else if (!existing.image && user.image) {
           await User.updateOne({ email: user.email! }, { image: user.image });
         }

@@ -2,13 +2,19 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
+import { LEGAL_DOCUMENT_VERSION } from '@/lib/legal-consent';
 import { z } from 'zod';
 
 const InscriptionSchema = z.object({
   name: z.string().trim().min(1, 'Le nom est requis').max(80, 'Le nom est trop long'),
   email: z.string().trim().toLowerCase().email('Adresse email invalide').max(254, 'Email trop long'),
   password: z.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères').max(128, 'Mot de passe trop long'),
-  userType: z.enum(['eleve', 'etudiant']).default('eleve')
+  userType: z.enum(['eleve', 'etudiant']).default('eleve'),
+  legalDocumentVersion: z.literal(LEGAL_DOCUMENT_VERSION),
+  acceptTerms: z.literal(true, 'Tu dois accepter les conditions d’utilisation.'),
+  acknowledgePrivacy: z.literal(true, 'Tu dois confirmer avoir lu la politique de confidentialité.'),
+  consentToExternalAI: z.literal(true, 'Tu dois accepter le traitement des contenus par les services IA nécessaires.'),
+  confirmAgeOrGuardian: z.literal(true, 'Confirme avoir 16 ans ou plus, ou l’accord de ton représentant légal.'),
 });
 
 // POST /api/auth/inscription — créer un compte
@@ -43,6 +49,14 @@ export async function POST(request: Request) {
       email:        normalizedEmail,
       passwordHash,
       userType:     ['eleve', 'etudiant'].includes(userType) ? userType : 'eleve',
+      legalAcceptance: {
+        version: parsed.data.legalDocumentVersion,
+        acceptedAt: new Date(),
+        termsAccepted: parsed.data.acceptTerms,
+        privacyAcknowledged: parsed.data.acknowledgePrivacy,
+        externalAiConsent: parsed.data.consentToExternalAI,
+        ageOrGuardianConfirmed: parsed.data.confirmAgeOrGuardian,
+      },
     });
 
     return NextResponse.json(

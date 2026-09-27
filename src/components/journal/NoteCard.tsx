@@ -8,7 +8,7 @@ import {
 import { useStore } from '@/store';
 import { MOOD_CONFIG, NOTE_COLORS, formatNoteDate, truncate, cn } from '@/lib/utils';
 import { useUserContext } from '@/lib/useUserContext';
-import { SubjectBadge, Badge } from '@/components/ui/primitives/Badge';
+import { SubjectBadge } from '@/components/ui/primitives/Badge';
 import type { Note } from '@/types';
 
 interface NoteCardProps {
@@ -47,6 +47,7 @@ export function NoteCard({ note, onOpen, index = 0, listMode = false }: NoteCard
   // ── List mode : compact horizontal row ──────────────────────────────────────
   if (listMode) {
     return (
+      <>
       <motion.article
         initial={{ opacity: 0, x: -8 }}
         animate={{ opacity: 1, x: 0 }}
@@ -82,7 +83,7 @@ export function NoteCard({ note, onOpen, index = 0, listMode = false }: NoteCard
         </div>
 
         {/* Right: meta + actions */}
-        <div className="flex items-center gap-3 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
           <span className={cn(
             'text-[10px] hidden sm:block',
             note.color === 'dark' || note.color === 'ochre' ? 'text-white/50' : 'text-[#9B9590]'
@@ -102,22 +103,21 @@ export function NoteCard({ note, onOpen, index = 0, listMode = false }: NoteCard
           </button>
           <button
             onClick={() => { openEditor(note.id); }}
-            className={cn(
-              'p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all text-[10px] font-medium',
-              note.color === 'dark' || note.color === 'ochre'
-                ? 'hover:bg-white/10 text-white/70'
-                : 'hover:bg-[#F5F3EF] text-[#9B9590] hover:text-[#1A1A1A]'
-            )}
+            title="Modifier la note"
+            aria-label={`Modifier « ${note.title} »`}
+            className="rounded-lg p-1.5 text-[#9B9590] transition-colors hover:bg-[#F5F3EF] hover:text-[#1A1A1A] dark:hover:bg-white/10 dark:hover:text-white"
           >
             <BookOpen size={13} />
           </button>
         </div>
       </motion.article>
+      </>
     );
   }
 
   // ── Card mode (masonry / grid) ───────────────────────────────────────────────
   return (
+    <>
     <motion.article
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
@@ -151,7 +151,7 @@ export function NoteCard({ note, onOpen, index = 0, listMode = false }: NoteCard
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center gap-1 flex-wrap justify-end" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={() => toggleFavorite(note.id)}
               className={cn(
@@ -163,6 +163,15 @@ export function NoteCard({ note, onOpen, index = 0, listMode = false }: NoteCard
               aria-label="Favorite"
             >
               <Heart size={14} fill={note.isFavorite ? 'currentColor' : 'none'} />
+            </button>
+            <button
+              type="button"
+              onClick={() => openEditor(note.id)}
+              title="Modifier la note"
+              aria-label={`Modifier « ${note.title} »`}
+              className="rounded-lg p-1.5 text-[#9B9590] transition-colors hover:bg-[#F5F3EF] hover:text-[#1A1A1A] dark:hover:bg-white/10 dark:hover:text-white"
+            >
+              <BookOpen size={14} />
             </button>
             <div className="relative">
               <button
@@ -183,7 +192,6 @@ export function NoteCard({ note, onOpen, index = 0, listMode = false }: NoteCard
                   onMouseLeave={() => setMenuOpen(false)}
                 >
                   {[
-                    { label: 'Modifier', action: () => { openEditor(note.id); setMenuOpen(false); } },
                                     { label: note.isPinned ? 'Désépingler' : 'Épingler', action: () => { pinNote(note.id); setMenuOpen(false); } },
                                     { label: 'Supprimer', action: () => { deleteNote(note.id); addToast({ type: 'success', message: 'Note supprimée' }); setMenuOpen(false); }, danger: true },
                   ].map((item) => (
@@ -277,5 +285,6 @@ export function NoteCard({ note, onOpen, index = 0, listMode = false }: NoteCard
         </div>
       </div>
     </motion.article>
+    </>
   );
 }

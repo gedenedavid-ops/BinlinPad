@@ -9,6 +9,14 @@ export interface IUser extends Document {
   image?: string;
   userType: UserType;           // élève (RAG curriculum) ou étudiant (open bar)
   learningProfile: LearningProfile;
+  legalAcceptance?: {
+    version: string;
+    acceptedAt: Date;
+    termsAccepted: boolean;
+    privacyAcknowledged: boolean;
+    externalAiConsent: boolean;
+    ageOrGuardianConfirmed: boolean;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -37,6 +45,18 @@ const LearningProfileSchema = new Schema<LearningProfile>(
   { _id: false }
 );
 
+const LegalAcceptanceSchema = new Schema(
+  {
+    version: { type: String, required: true },
+    acceptedAt: { type: Date, required: true },
+    termsAccepted: { type: Boolean, required: true },
+    privacyAcknowledged: { type: Boolean, required: true },
+    externalAiConsent: { type: Boolean, required: true },
+    ageOrGuardianConfirmed: { type: Boolean, required: true },
+  },
+  { _id: false }
+);
+
 const UserSchema = new Schema<IUser>(
   {
     name:            { type: String, required: true, trim: true, maxlength: 80 },
@@ -45,6 +65,7 @@ const UserSchema = new Schema<IUser>(
     image:           { type: String },
     userType:        { type: String, enum: ['eleve', 'etudiant'], default: 'eleve' },
     learningProfile: { type: LearningProfileSchema, default: () => ({}) },
+    legalAcceptance: { type: LegalAcceptanceSchema },
   },
   {
     timestamps: true,

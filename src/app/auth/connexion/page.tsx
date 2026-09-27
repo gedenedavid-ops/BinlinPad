@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, Loader2, Mail, Lock, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { LEGAL_DOCUMENT_VERSION } from '@/lib/legal-consent';
 import type { UserType } from '@/types';
 import { SignInPage } from '@/components/ui/auth/sign-in';
 
@@ -46,6 +47,10 @@ function AuthForm() {
   const [loading, setLoading]     = useState(false);
   const [error, setError]         = useState('');
   const [googleSoon, setGoogleSoon] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acknowledgePrivacy, setAcknowledgePrivacy] = useState(false);
+  const [consentToExternalAI, setConsentToExternalAI] = useState(false);
+  const [confirmAgeOrGuardian, setConfirmAgeOrGuardian] = useState(false);
 
   // ── Connexion OAuth Google ───────────────────────────────────────────────────
   const handleGoogle = () => {
@@ -57,6 +62,17 @@ function AuthForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (mode === 'inscription' && (
+      !acceptTerms ||
+      !acknowledgePrivacy ||
+      !consentToExternalAI ||
+      !confirmAgeOrGuardian
+    )) {
+      setError('Pour créer ton compte, confirme les conditions, la confidentialité, l’utilisation des services IA et l’âge ou l’accord parental.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -64,7 +80,17 @@ function AuthForm() {
         const res = await fetch('/api/auth/inscription', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, password, userType }),
+          body: JSON.stringify({
+            name,
+            email,
+            password,
+            userType,
+            legalDocumentVersion: LEGAL_DOCUMENT_VERSION,
+            acceptTerms,
+            acknowledgePrivacy,
+            consentToExternalAI,
+            confirmAgeOrGuardian,
+          }),
         });
         const data = await res.json();
         if (!res.ok) { setError(data.error); setLoading(false); return; }
@@ -110,7 +136,16 @@ function AuthForm() {
             {(['connexion', 'inscription'] as Mode[]).map((m) => (
               <button
                 key={m}
-                onClick={() => { setMode(m); setError(''); }}
+                onClick={() => {
+                  setMode(m);
+                  setError('');
+                  if (m === 'inscription') {
+                    setAcceptTerms(false);
+                    setAcknowledgePrivacy(false);
+                    setConsentToExternalAI(false);
+                    setConfirmAgeOrGuardian(false);
+                  }
+                }}
                 className={cn(
                   'flex-1 py-2 rounded-lg text-sm font-medium transition-all',
                   mode === m
@@ -246,6 +281,56 @@ function AuthForm() {
               </button>
             </div>
 
+            {mode === 'inscription' && (
+              <fieldset className="space-y-3 rounded-xl border border-[#E8E4DF] bg-[#FAF8F5] p-3 text-xs leading-relaxed text-[#57514C] dark:border-[#2E2C28] dark:bg-[#242320] dark:text-[#C8C4BE]">
+                <legend className="px-1 text-[11px] font-semibold text-[#1A1A1A] dark:text-[#F0EDE8]">
+                  Avant de créer ton compte
+                </legend>
+                <label className="flex cursor-pointer items-start gap-2">
+                  <input
+                    type="checkbox"
+                    checked={acceptTerms}
+                    onChange={(event) => setAcceptTerms(event.target.checked)}
+                    className="mt-0.5 size-4 shrink-0 accent-[#F4A236]"
+                  />
+                  <span>
+                    J’accepte les <a href="/legal#cgu" target="_blank" rel="noopener noreferrer" className="font-medium text-[#D78313] underline">Conditions Générales d’Utilisation</a>.
+                  </span>
+                </label>
+                <label className="flex cursor-pointer items-start gap-2">
+                  <input
+                    type="checkbox"
+                    checked={acknowledgePrivacy}
+                    onChange={(event) => setAcknowledgePrivacy(event.target.checked)}
+                    className="mt-0.5 size-4 shrink-0 accent-[#F4A236]"
+                  />
+                  <span>
+                    Je confirme avoir lu la <a href="/legal#donnees" target="_blank" rel="noopener noreferrer" className="font-medium text-[#D78313] underline">Politique de confidentialité</a>.
+                  </span>
+                </label>
+                <label className="flex cursor-pointer items-start gap-2">
+                  <input
+                    type="checkbox"
+                    checked={consentToExternalAI}
+                    onChange={(event) => setConsentToExternalAI(event.target.checked)}
+                    className="mt-0.5 size-4 shrink-0 accent-[#F4A236]"
+                  />
+                  <span>
+                    J’accepte que le titre, la matière et le contenu de mes notes soient envoyés à Voyage AI lors de leur enregistrement pour l’indexation, et que les contenus utilisés par les fonctions IA soient transmis aux prestataires indiqués dans la <a href="/legal#prestataires" target="_blank" rel="noopener noreferrer" className="font-medium text-[#D78313] underline">politique de confidentialité</a>.
+                  </span>
+                </label>
+                <label className="flex cursor-pointer items-start gap-2">
+                  <input
+                    type="checkbox"
+                    checked={confirmAgeOrGuardian}
+                    onChange={(event) => setConfirmAgeOrGuardian(event.target.checked)}
+                    className="mt-0.5 size-4 shrink-0 accent-[#F4A236]"
+                  />
+                  <span>Je confirme avoir au moins 16 ans ou disposer de l’accord de mon parent ou représentant légal.</span>
+                </label>
+              </fieldset>
+            )}
+
             {/* Message d'erreur */}
             <AnimatePresence>
               {error && (
@@ -282,12 +367,10 @@ function AuthForm() {
           )}
         </motion.div>
 
-        {/* Mentions légales minimales */}
-        <p className="text-[10px] text-[#C8C4BE] text-center mt-4 px-4">
-          En continuant, tu acceptes nos{' '}
-          <a href="/legal" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#9B9590] transition-colors">Conditions d&apos;utilisation</a>
-          {' '}et notre{' '}
-          <a href="/legal#donnees" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#9B9590] transition-colors">Politique de confidentialité</a>.
+        <p className="mt-4 px-4 text-center text-[10px] text-[#C8C4BE]">
+          {mode === 'inscription'
+            ? 'Le compte ne sera créé qu’après confirmation des cases ci-dessus.'
+            : <>En te connectant, tu restes soumis aux <a href="/legal#cgu" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#9B9590]">Conditions d’utilisation</a> et à la <a href="/legal#donnees" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#9B9590]">Politique de confidentialité</a>.</>}
         </p>
     </SignInPage>
   );

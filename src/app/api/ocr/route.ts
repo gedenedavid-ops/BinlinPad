@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
+import { getKrekreUsageForUser, isKrekreBlocked, parseTokenUsage, recordKrekreUsage } from '@/lib/krekre';
 import { z } from 'zod';
 
 const OcrSchema = z.object({
@@ -27,6 +28,14 @@ export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+  }
+
+  const krekreCheck = await isKrekreBlocked(session.user.id, 'ocr');
+  if (krekreCheck.blocked) {
+    return NextResponse.json({
+      error: krekreCheck.reason ?? 'Krékré atteint.',
+      krekre: krekreCheck.usage,
+    }, { status: 429 });
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
@@ -99,6 +108,18 @@ Transcris EXACTEMENT le texte écrit sur cette image, en :
     }
 
     const data = await res.json();
+    const usage = parseTokenUsage(data);
+    if (usage) {
+      await recordKrekreUsage({
+        userId: session.user.id,
+        provider: 'gemini',
+        action: 'ocr',
+        model: 'gemini-2.0-flash',
+        totalTokens: usage.totalTokens,
+        promptTokens: usage.promptTokens,
+        completionTokens: usage.completionTokens,
+      });
+    }
     const text: string =
       data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
 
@@ -109,7 +130,10 @@ Transcris EXACTEMENT le texte écrit sur cette image, en :
       );
     }
 
-    return NextResponse.json({ text: text.trim() });
+    return NextResponse.json({
+      text: text.trim(),
+      krekre: await getKrekreUsageForUser(session.user.id),
+    });
 
   } catch (error) {
     console.error('[OCR] error:', error);

@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Network, BookOpen, Info, X, Sparkles, Eye, EyeOff,
+  Network, Info, X, Sparkles, Eye, EyeOff,
   FileText, Hash, Clock, TrendingUp, Plus,
 } from 'lucide-react';
 import { Shell } from '@/components/layout/Shell';
@@ -29,7 +29,7 @@ function NodePanel({
   onAskTutor: (subject: string) => void;
   onCreateNote: (subject?: string) => void;
 }) {
-  const { notes } = useStore();
+  const { notes, openEditor } = useStore();
   const filteredNotes = useFilteredNotes();
   const { subjectConfig } = useUserContext();
 
@@ -168,7 +168,7 @@ function NodePanel({
           Notes ({filteredNotes.length || relatedNotes.length})
         </p>
         {(filteredNotes.length > 0 ? filteredNotes : relatedNotes).map((note, i) => (
-          <NoteCard key={note.id} note={note} onOpen={() => {}} index={i} />
+          <NoteCard key={note.id} note={note} onOpen={() => openEditor(note.id)} index={i} />
         ))}
         {relatedNotes.length === 0 && (
           <p className="text-xs text-[#9B9590] text-center py-6">Aucune note liée</p>
@@ -197,17 +197,17 @@ function OverviewPanel({
   return (
     <div className="flex flex-col h-full">
       <div className="px-4 py-3 border-b border-[#E8E4DF] dark:border-[#2E2C28] flex-shrink-0">
-        <p className="text-xs font-semibold text-[#9B9590] uppercase tracking-wider">Vue d'ensemble</p>
+        <p className="text-xs font-semibold text-[#9B9590] uppercase tracking-wider">Vue d&apos;ensemble</p>
       </div>
 
       {/* Stats globales */}
       <div className="px-4 py-3 border-b border-[#E8E4DF] dark:border-[#2E2C28] flex-shrink-0">
         <div className="grid grid-cols-3 gap-2">
           {[
-            { label: 'Notes',    value: notes.length,   icon: FileText  },
-            { label: 'Matières', value: Object.keys(subjectCounts).length, icon: BookOpen },
-            { label: 'Tags',     value: totalTags,       icon: Hash      },
-          ].map(({ label, value, icon: Icon }) => (
+            { label: 'Notes',    value: notes.length },
+            { label: 'Matières', value: Object.keys(subjectCounts).length },
+            { label: 'Tags',     value: totalTags },
+          ].map(({ label, value }) => (
             <div key={label} className="bg-[#F5F3EF] dark:bg-[#242320] rounded-xl p-2.5 text-center">
               <p className="text-base font-bold text-[#1A1A1A] dark:text-[#F0EDE8]">{value}</p>
               <p className="text-[10px] text-[#9B9590]">{label}</p>
@@ -263,13 +263,15 @@ function OverviewPanel({
 
 export default function GraphPage() {
   const router = useRouter();
-  const { notes, graphFilterNodeId, setGraphFilter, openEditor } = useStore();
+  const { notes, notesLoaded, loadNotes, graphFilterNodeId, setGraphFilter, openEditor } = useStore();
 
   const [selectedNode, setSelectedNode] = useState<{
     id: string; label: string; type: string;
   } | null>(null);
   const [showAllNotes, setShowAllNotes] = useState(true);
-  const [viewNote, setViewNote] = useState<Note | null>(null);
+  useEffect(() => {
+    if (!notesLoaded) void loadNotes();
+  }, [notesLoaded, loadNotes]);
 
   const handleNodeClick = useCallback((nodeId: string, label: string, type: string) => {
     if (graphFilterNodeId === nodeId) {
@@ -327,7 +329,7 @@ export default function GraphPage() {
                   <span className="w-2.5 h-2.5 rounded-full bg-[#F4A236]" /> Matières
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#1A1A1A]" /> Concepts
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#67C594]" /> Concepts
                 </span>
                 <span className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#9B9590]" /> Notes
@@ -371,7 +373,7 @@ export default function GraphPage() {
                 <div className="w-16 h-16 rounded-3xl bg-[#F5F3EF] dark:bg-[#242320] flex items-center justify-center mb-4">
                   <Network size={24} className="text-[#C8C4BE]" />
                 </div>
-                <h3 className="text-[#1A1A1A] dark:text-[#F0EDE8] font-semibold mb-1">Aucune carte pour l'instant</h3>
+                <h3 className="text-[#1A1A1A] dark:text-[#F0EDE8] font-semibold mb-1">Aucune carte pour l&apos;instant</h3>
                 <p className="text-[#9B9590] text-sm max-w-xs">
                   Ajoute des notes avec des matières et des tags pour voir ta carte des connaissances se construire.
                 </p>
@@ -426,6 +428,29 @@ export default function GraphPage() {
                   className="h-full"
                 >
                   <OverviewPanel notes={notes} onSelectSubject={handleSelectSubject} />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <div className="lg:hidden">
+            <AnimatePresence>
+              {selectedNode && (
+                <motion.div
+                  key={selectedNode.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  className="fixed inset-x-3 bottom-[calc(5.25rem+env(safe-area-inset-bottom))] z-30 h-[52vh] max-h-[30rem] overflow-hidden rounded-2xl border border-[#E8E4DF] bg-white shadow-xl dark:border-[#2E2C28] dark:bg-[#1C1B19]"
+                >
+                  <NodePanel
+                    nodeId={selectedNode.id}
+                    nodeLabel={selectedNode.label}
+                    nodeType={selectedNode.type}
+                    onClose={handleClose}
+                    onAskTutor={handleAskTutor}
+                    onCreateNote={handleCreateNote}
+                  />
                 </motion.div>
               )}
             </AnimatePresence>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useCallback, useState } from 'react';
 import * as d3 from 'd3';
+import { LocateFixed, ZoomIn, ZoomOut } from 'lucide-react';
 import { useStore } from '@/store';
 import { GRAPH_NODE_COLORS } from '@/lib/utils';
 import { useUserContext } from '@/lib/useUserContext';
@@ -36,26 +37,53 @@ export function KnowledgeGraph({ onNodeClick, showAllNotes = true }: KnowledgeGr
   const svgRef       = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const filterRef    = useRef<string | null>(null);
+  const onNodeClickRef = useRef(onNodeClick);
+  const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const { notes, setGraphFilter, graphFilterNodeId } = useStore();
   const { subjectConfig } = useUserContext();
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [hoveredNode, setHoveredNode] = useState<{
     id: string; label: string; type: string;
     noteCount?: number; wordCount?: number; x: number; y: number;
   } | null>(null);
 
   useEffect(() => { filterRef.current = graphFilterNodeId; }, [graphFilterNodeId]);
+  useEffect(() => { onNodeClickRef.current = onNodeClick; }, [onNodeClick]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const observer = new ResizeObserver(([entry]) => {
+      const width = Math.round(entry.contentRect.width);
+      const height = Math.round(entry.contentRect.height);
+      setDimensions((current) =>
+        current.width === width && current.height === height
+          ? current
+          : { width, height }
+      );
+    });
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
 
   const buildGraphData = useCallback(() => {
     const nodes: GraphDatum[] = [];
     const links: LinkDatum[]  = [];
     const nodeMap = new Map<string, GraphDatum>();
+    const notesToShow = showAllNotes
+      ? notes
+      : notes.filter((n) => n.isPinned || n.isFavorite);
 
     // ── Nœuds matières ────────────────────────────────────────────────────────
-    const subjectsInNotes = new Set(notes.map((n) => n.subject));
+    const subjectsInNotes = new Set(notesToShow.map((n) => n.subject));
     subjectsInNotes.forEach((subject) => {
-      const config = subjectConfig[subject];
-      if (!config) return;
-      const notesForSubject = notes.filter((n) => n.subject === subject);
+      const config = subjectConfig[subject] ?? {
+        emoji: '📚',
+        color: GRAPH_NODE_COLORS.subject,
+      };
+      const notesForSubject = notesToShow.filter((n) => n.subject === subject);
 
       // Indicateur de maîtrise basé sur l'humeur
       const moodedNotes = notesForSubject.filter((n) => n.mood);
@@ -84,7 +112,7 @@ export function KnowledgeGraph({ onNodeClick, showAllNotes = true }: KnowledgeGr
 
     // ── Nœuds concepts (tags) ─────────────────────────────────────────────────
     const tagCounts = new Map<string, number>();
-    notes.forEach((note) => {
+    notesToShow.forEach((note) => {
       note.tags.forEach((tag) => {
         tagCounts.set(tag.label, (tagCounts.get(tag.label) ?? 0) + 1);
       });
@@ -102,10 +130,6 @@ export function KnowledgeGraph({ onNodeClick, showAllNotes = true }: KnowledgeGr
     });
 
     // ── Nœuds notes ───────────────────────────────────────────────────────────
-    const notesToShow = showAllNotes
-      ? notes
-      : notes.filter((n) => n.isPinned || n.isFavorite);
-
     notesToShow.forEach((note) => {
       const subjectCfg = subjectConfig[note.subject];
       // Taille selon nb de mots (6..16)
@@ -123,7 +147,7 @@ export function KnowledgeGraph({ onNodeClick, showAllNotes = true }: KnowledgeGr
     });
 
     // ── Liens matière → tag ───────────────────────────────────────────────────
-    notes.forEach((note) => {
+    notesToShow.forEach((note) => {
       if (!nodeMap.has(note.subject)) return;
       note.tags.forEach((tag) => {
         const tagId = `tag:${tag.label}`;
@@ -182,15 +206,27 @@ export function KnowledgeGraph({ onNodeClick, showAllNotes = true }: KnowledgeGr
 
   // ── Simulation D3 ─────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!svgRef.current || !containerRef.current) return;
-
+    const svgElement = svgRef.current;
     const container = containerRef.current;
-    const width  = container.clientWidth  || 600;
-    const height = container.clientHeight || 400;
+    if (!svgElement || !container || !dimensions.width || !dimensions.height) return;
 
-    const svg = d3.select(svgRef.current);
+    const { width, height } = dimensions;
+
+    const svg = d3.select(svgElement);
     svg.selectAll('*').remove();
     svg.attr('width', width).attr('height', height);
+
+    const graphStyle = getComputedStyle(container);
+    const graphLabelColor = graphStyle.getPropertyValue('--graph-label').trim() || '#303632';
+    const graphLabelHalo = graphStyle.getPropertyValue('--graph-background').trim() || '#141A17';
+    const graphConceptColor = graphStyle.getPropertyValue('--graph-concept').trim() || '#67C594';
+    const graphSubjectHalo = graphStyle.getPropertyValue('--graph-subject-halo').trim() || '#27352D';
+    const graphLinks = {
+      subjectTag: graphStyle.getPropertyValue('--graph-link-subject').trim() || '#C47C16',
+      noteTag: graphStyle.getPropertyValue('--graph-link-note').trim() || '#A66B2B',
+      noteNote: graphStyle.getPropertyValue('--graph-link-shared').trim() || '#8A6541',
+      subjectNote: graphStyle.getPropertyValue('--graph-link-subject-note').trim() || '#929B96',
+    };
 
     const { nodes, links } = buildGraphData();
     if (nodes.length === 0) return;
@@ -201,6 +237,7 @@ export function KnowledgeGraph({ onNodeClick, showAllNotes = true }: KnowledgeGr
     const zoom = d3.zoom<SVGSVGElement, unknown>()
       .scaleExtent([0.15, 5])
       .on('zoom', (event) => g.attr('transform', event.transform));
+    zoomRef.current = zoom;
     svg.call(zoom);
 
     // Simulation — charge répulsive plus forte pour les grands graphes
@@ -224,11 +261,16 @@ export function KnowledgeGraph({ onNodeClick, showAllNotes = true }: KnowledgeGr
       .selectAll('line')
       .data(links)
       .join('line')
-      .attr('stroke', (d) => d.kind === 'note-note' ? '#C8C4BE' : '#E8E4DF')
-      .attr('stroke-width', (d) => d.kind === 'note-note' ? 1 : 1.5)
+      .attr('stroke', (d) => {
+        if (d.kind === 'subject-tag') return graphLinks.subjectTag;
+        if (d.kind === 'note-tag') return graphLinks.noteTag;
+        if (d.kind === 'note-note') return graphLinks.noteNote;
+        return graphLinks.subjectNote;
+      })
+      .attr('stroke-width', (d) => d.kind === 'note-note' ? 2 : 1.8)
       .attr('stroke-dasharray', (d) => d.kind === 'note-note' ? '3,3' : null)
       .attr('stroke-linecap', 'round')
-      .attr('opacity', (d) => d.kind === 'note-note' ? 0.5 : 1);
+      .attr('opacity', 0.9);
 
     // ── Nœuds ──────────────────────────────────────────────────────────────
     const nodeGroup = g.append('g')
@@ -247,14 +289,14 @@ export function KnowledgeGraph({ onNodeClick, showAllNotes = true }: KnowledgeGr
     nodeGroup.filter((d) => d.type === 'subject')
       .append('circle')
       .attr('r', (d) => (d.size ?? 22) + 4)
-      .attr('fill', 'white')
+      .attr('fill', graphSubjectHalo)
       .attr('fill-opacity', 0.6);
 
     // Cercle principal — d.color contient déjà la couleur de maîtrise pour les matières
     const circles = nodeGroup.append('circle')
       .attr('r', (d) => d.size ?? 10)
       .attr('fill', (d) => {
-        if (d.type === 'concept') return '#1A1A1A';
+        if (d.type === 'concept') return graphConceptColor;
         return d.color ?? '#9B9590';
       })
       .attr('fill-opacity', (d) => d.type === 'note' ? 0.65 : 0.88)
@@ -272,7 +314,10 @@ export function KnowledgeGraph({ onNodeClick, showAllNotes = true }: KnowledgeGr
       .attr('dy', (d) => (d.size ?? 10) + 13)
       .attr('font-size', (d) => d.type === 'subject' ? '11px' : '9px')
       .attr('font-weight', (d) => d.type === 'subject' ? '600' : '400')
-      .attr('fill', '#1A1A1A')
+      .attr('fill', graphLabelColor)
+      .attr('stroke', graphLabelHalo)
+      .attr('stroke-width', 3)
+      .attr('paint-order', 'stroke')
       .attr('pointer-events', 'none');
 
     // ── Filtre visuel (sans recréer la sim) ────────────────────────────────
@@ -281,11 +326,11 @@ export function KnowledgeGraph({ onNodeClick, showAllNotes = true }: KnowledgeGr
         .attr('stroke', (d) => activeId === d.id ? '#F4A236' : 'white')
         .attr('stroke-width', (d) => activeId === d.id ? 3.5 : 2)
         .attr('fill-opacity', (d) => {
-          if (!activeId) return d.type === 'note' ? 0.65 : 0.88;
+          if (!activeId) return d.type === 'note' ? 0.82 : 0.95;
           return activeId === d.id ? 1 : 0.2;
         });
       link.attr('stroke-opacity', (d) => {
-        if (!activeId) return d.kind === 'note-note' ? 0.5 : 1;
+        if (!activeId) return d.kind === 'note-note' ? 0.8 : 1;
         const src = typeof d.source === 'string' ? d.source : (d.source as GraphDatum).id;
         const tgt = typeof d.target === 'string' ? d.target : (d.target as GraphDatum).id;
         return src === activeId || tgt === activeId ? 1 : 0.08;
@@ -297,7 +342,7 @@ export function KnowledgeGraph({ onNodeClick, showAllNotes = true }: KnowledgeGr
     const handleFilterChange = (e: Event) => {
       updateFilterStyles(((e as CustomEvent).detail as { nodeId: string }).nodeId);
     };
-    svgRef.current?.addEventListener('binlinpad:filter', handleFilterChange);
+    svgElement.addEventListener('binlinpad:filter', handleFilterChange);
 
     // ── Clic nœud ──────────────────────────────────────────────────────────
     nodeGroup['on']('click', (event, d) => {
@@ -306,7 +351,7 @@ export function KnowledgeGraph({ onNodeClick, showAllNotes = true }: KnowledgeGr
       filterRef.current = newFilter;
       setGraphFilter(newFilter);
       updateFilterStyles(newFilter);
-      onNodeClick?.(d.id, d.label, d.type);
+      onNodeClickRef.current?.(d.id, d.label, d.type);
     });
 
     // ── Hover ──────────────────────────────────────────────────────────────
@@ -361,17 +406,68 @@ export function KnowledgeGraph({ onNodeClick, showAllNotes = true }: KnowledgeGr
 
     return () => {
       simulation.stop();
+      zoomRef.current = null;
       // Nettoyage explicite des listeners D3 pour éviter les fuites mémoire
       nodeGroup['on']('click', null)['on']('mouseenter', null)['on']('mouseleave', null);
       svg['on']('click', null)['on']('.zoom', null);
-      svgRef.current?.removeEventListener('binlinpad:filter', handleFilterChange);
+      svgElement.removeEventListener('binlinpad:filter', handleFilterChange);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notes, showAllNotes, buildGraphData, setGraphFilter, onNodeClick]);
+  }, [notes, showAllNotes, buildGraphData, setGraphFilter, dimensions]);
+
+  const zoomBy = (factor: number) => {
+    if (!svgRef.current || !zoomRef.current) return;
+    d3.select(svgRef.current)
+      .transition()
+      .duration(220)
+      .call(zoomRef.current.scaleBy, factor);
+  };
+
+  const resetZoom = () => {
+    if (!svgRef.current || !zoomRef.current) return;
+    d3.select(svgRef.current)
+      .transition()
+      .duration(280)
+      .call(zoomRef.current.transform, d3.zoomIdentity);
+  };
 
   return (
-    <div ref={containerRef} className="relative w-full h-full">
-      <svg ref={svgRef} className="w-full h-full" />
+    <div ref={containerRef} className="knowledge-graph-surface relative h-full w-full overflow-hidden">
+      <svg ref={svgRef} className="relative z-0 h-full w-full" />
+
+      <div
+        role="group"
+        aria-label="Commandes de la carte"
+        className="absolute left-4 top-4 z-10 flex items-center gap-1 rounded-xl border border-white/10 bg-[#202622]/90 p-1.5 text-[#D7DED9] shadow-lg shadow-black/20 backdrop-blur-md"
+      >
+        <button
+          type="button"
+          onClick={() => zoomBy(1.25)}
+          title="Zoom avant"
+          aria-label="Zoom avant"
+          className="flex size-8 items-center justify-center rounded-lg transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+        >
+          <ZoomIn size={16} />
+        </button>
+        <button
+          type="button"
+          onClick={() => zoomBy(0.8)}
+          title="Zoom arrière"
+          aria-label="Zoom arrière"
+          className="flex size-8 items-center justify-center rounded-lg transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+        >
+          <ZoomOut size={16} />
+        </button>
+        <span className="mx-0.5 h-5 w-px bg-black/10 dark:bg-white/10" />
+        <button
+          type="button"
+          onClick={resetZoom}
+          title="Recentrer la carte"
+          aria-label="Recentrer la carte"
+          className="flex size-8 items-center justify-center rounded-lg transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+        >
+          <LocateFixed size={16} />
+        </button>
+      </div>
 
       {/* Tooltip hover enrichi */}
       {hoveredNode && (

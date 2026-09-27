@@ -5,6 +5,7 @@ import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
 import { Note } from '@/models/Note';
 import { ChatSessionModel } from '@/models/ChatSession';
+import { UsageLog } from '@/models/UsageLog';
 
 const QDRANT_URL        = process.env.QDRANT_URL ?? '';
 const QDRANT_API_KEY    = process.env.QDRANT_API_KEY ?? '';
@@ -48,6 +49,7 @@ export async function DELETE() {
   await Promise.all([
     Note.deleteMany({ userId: oid }),
     ChatSessionModel.deleteMany({ userId: oid }),
+    UsageLog.deleteMany({ userId: oid }),
     // SpeakRequests — collection inline dans wellbeing/speak-request/route.ts
     mongoose.models.SpeakRequest?.deleteMany({ userId: oid }),
     User.findByIdAndDelete(oid),

@@ -461,3 +461,34 @@ Validations finales réalisées le 16 septembre 2026 :
 - proxy Next.js détecté et compilé.
 
 Le lint global contient encore des erreurs historiques dans certains écrans métier (`graph`, `MoodDashboard`, `NoteEditor`, `ChatPanel`, `ExerciseTimer`). Elles ne bloquent pas le build, mais doivent être corrigées avant d’imposer `npm run lint` comme étape bloquante de CI.
+
+## 16. Session du 27 septembre 2026
+
+### Graphe de connaissances
+
+- Le graphe charge maintenant les notes même lorsqu'on ouvre directement `/graph`.
+- Les nœuds matière restent visibles même si leur configuration n'est pas encore chargée ; le mode « épinglées seulement » ne crée plus de concepts à partir des notes masquées.
+- Le canvas a été retravaillé dans une direction inspirée de la vue Graph d'Obsidian : fond graphite, grille discrète, libellés et liens plus contrastés, commandes de zoom et de recentrage.
+- Le panneau d'exploration fonctionne aussi sur mobile et les notes liées peuvent être ouvertes depuis ce panneau.
+
+### Fiches et révisions
+
+- Les cartes de notes ont été allégées : les actions de révision sont regroupées dans la fiche détaillée, à côté de **Modifier**.
+- Les boutons **Flashcards** et **Devoirs** sont accessibles depuis cette fiche ; les notes protégées passent par le déverrouillage avant l'accès à leurs actions.
+- Les devoirs s'affichent dans une fenêtre dédiée et peuvent être imprimés en A4. L'interface emploie le libellé « Devoirs », tout en conservant le mode technique existant.
+
+### Dictée et correction
+
+- La dictée vocale est disponible dès la création comme pendant la modification d'une note. Elle utilise l'API vocale du navigateur, s'arrête avec l'éditeur et affiche des messages lorsque le navigateur refuse le micro ou ne peut pas démarrer la dictée.
+- Le bouton **Corriger** fonctionne désormais sur les brouillons et les notes enregistrées.
+- La correction est effectuée par Gemini avec le titre, la matière et des consignes demandant de préserver le contexte ivoirien, les noms locaux, les sigles, les formules et le sens du texte.
+- Gemini retourne un rapport structuré ; les corrections ne sont appliquées qu'après confirmation de l'utilisateur.
+- L'usage des tokens Gemini est enregistré dans Krékré, y compris les champs d'usage propres à Gemini.
+- La documentation de confidentialité précise que le texte, son titre et sa matière sont transmis à Gemini après le clic sur **Corriger**.
+
+### Vérifications
+
+- Diagnostics de l'éditeur : aucune erreur sur les fichiers concernés.
+- ESLint ciblé : l'endpoint de correction, le suivi Krékré et les composants de graphe passent.
+- `NoteEditor.tsx` conserve sept diagnostics ESLint préexistants concernant notamment les états synchronisés dans un effet, des types `any` et une dépendance de `useCallback`.
+- Aucun build ni appel réel à Gemini n'a été lancé durant ces changements ; les fonctionnalités ne sont donc pas validées en production.

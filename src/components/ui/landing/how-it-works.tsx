@@ -22,7 +22,7 @@ const steps: CardProps[] = [
   { number: "01", title: "Ton cahier ou tes notes restent le point de départ", description: "Tes leçons, tes mots et tes matières restent au centre de ton apprentissage.", colorTheme: "orange" },
   { number: "02", title: "Tu retrouves ton cours", description: "Binlin organise tes notes et retrouve rapidement ce dont tu as besoin.", colorTheme: "blue" },
   { number: "03", title: "Binlin comprend ton contexte", description: "Tes notes, tes échanges et le programme ivoirien donnent du sens à tes révisions.", colorTheme: "purple" },
-  { number: "04", title: "Tu révises avec méthode", description: "Flashcards, correction, compléments et examen blanc partent de ta propre leçon.", colorTheme: "orange" },
+  { number: "04", title: "Tu révises avec méthode", description: "Flashcards, correction, compléments et devoirs partent de ta propre leçon.", colorTheme: "orange" },
   { number: "05", title: "Tu avances en confiance", description: "Ton espace reste organisé, avec un PIN et un journal d'humeur privés.", colorTheme: "blue" },
 ];
 

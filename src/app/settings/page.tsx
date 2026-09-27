@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield, Palette, Database,
@@ -252,6 +252,21 @@ export default function SettingsPage() {
   const [displayNameDraft, setDisplayNameDraft] = useState(prefs.displayName);
   const [nameSaved, setNameSaved] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const [krekre, setKrekre] = useState<{ day: number; month: number; remainingDay: number; remainingMonth: number; dailyLimit: number; monthlyLimit: number; ocrTodayCount: number; ocrDailyLimit: number } | null>(null);
+
+  useEffect(() => {
+    const loadKrekre = async () => {
+      try {
+        const res = await fetch('/api/krekre');
+        if (!res.ok) return;
+        const data = await res.json();
+        setKrekre(data.usage ?? null);
+      } catch {
+        // silent
+      }
+    };
+    loadKrekre();
+  }, []);
 
   const saveName = () => {
     updatePrefs({ displayName: displayNameDraft.trim() });

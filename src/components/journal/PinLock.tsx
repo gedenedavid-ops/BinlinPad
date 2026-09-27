@@ -10,7 +10,7 @@ async function sha256(pin: string): Promise<string> {
   return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-export function PinLockModal() {
+export function PinLockModal({ onUnlock }: { onUnlock?: (noteId: string) => void }) {
   const { pinModalNoteId, closePinModal, unlockNote, openEditor } = useStore();
   const pinHash = useStore((s) => s.prefs.pinHash);
   const [digits, setDigits] = useState<string[]>([]);
@@ -29,7 +29,8 @@ export function PinLockModal() {
       if (enteredHash === pinHash) {
         if (pinModalNoteId) {
           unlockNote(pinModalNoteId);
-          openEditor(pinModalNoteId);
+          if (onUnlock) onUnlock(pinModalNoteId);
+          else openEditor(pinModalNoteId);
         }
         setDigits([]);
         closePinModal();
@@ -39,7 +40,7 @@ export function PinLockModal() {
         setTimeout(() => { setDigits([]); setShake(false); }, 600);
       }
     }
-  }, [digits, pinHash, pinModalNoteId, unlockNote, openEditor, closePinModal]);
+  }, [digits, pinHash, pinModalNoteId, unlockNote, onUnlock, openEditor, closePinModal]);
 
   const handleDelete = () => {
     setDigits((prev) => prev.slice(0, -1));

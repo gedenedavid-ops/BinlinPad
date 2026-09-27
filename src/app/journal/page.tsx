@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Search, Plus, X, SlidersHorizontal,
+  Search, Plus, X, SlidersHorizontal, Layers, FileText, Loader2,
   Folder,
 } from 'lucide-react';
 import { useStore, useFilteredNotes } from '@/store';
 import { MOOD_CONFIG, cn } from '@/lib/utils';
 import { useUserContext } from '@/lib/useUserContext';
 import { NoteCard } from '@/components/journal/NoteCard';
+import { NoteStudyModal, type NoteStudyContent } from '@/components/journal/NoteStudyModal';
 import { NoteEditor } from '@/components/journal/NoteEditor';
 import { PinLockModal } from '@/components/journal/PinLock';
 import { MoodDashboard } from '@/components/journal/MoodDashboard';
@@ -24,15 +25,49 @@ export default function JournalPage() {
   const {
     notes, notesLoaded, searchQuery, filterSubject, filterMood,
     setSearchQuery, setFilterSubject, setFilterMood,
-    openEditor, loadNotes, prefs,
+    openEditor, loadNotes, prefs, addToast,
   } = useStore();
   const { subjectConfig, subjectList, isEleve } = useUserContext();
   const filteredNotes = useFilteredNotes();
   const visibleNotes = isEleve && !filterSubject ? [] : filteredNotes;
   const [showFilters, setShowFilters] = useState(false);
   const [viewNote, setViewNote] = useState<Note | null>(null);
+  const [studyContent, setStudyContent] = useState<NoteStudyContent | null>(null);
+  const [loadingStudy, setLoadingStudy] = useState<'flashcards' | 'exam' | null>(null);
 
   useEffect(() => { loadNotes(); }, [loadNotes]);
+
+  const generateStudyContent = async (note: Note, mode: 'flashcards' | 'exam') => {
+    setLoadingStudy(mode);
+    try {
+      const response = await fetch(`/api/notes/${note.id}/analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? 'La génération a échoué. Réessaie.');
+
+      if (mode === 'flashcards') {
+        if (!Array.isArray(data.flashcards) || data.flashcards.length === 0) {
+          throw new Error('Aucune flashcard n’a pu être générée pour cette note.');
+        }
+        setStudyContent({ type: 'flashcards', cards: data.flashcards, noteTitle: note.title });
+      } else {
+        if (typeof data.result !== 'string' || !data.result.trim()) {
+          throw new Error('Aucun devoir n’a pu être généré pour cette note.');
+        }
+        setStudyContent({ type: 'exam', result: data.result, noteTitle: note.title });
+      }
+    } catch (error) {
+      addToast({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'La génération a échoué. Réessaie.',
+      });
+    } finally {
+      setLoadingStudy(null);
+    }
+  };
 
   // Stats
   const subjectsSet = new Set(notes.map((n) => n.subject));
@@ -303,17 +338,25 @@ export default function JournalPage() {
               transition={{ type: 'spring', stiffness: 400, damping: 30 }}
               className="relative w-full max-w-2xl max-h-[85vh] bg-white dark:bg-[#1C1B19] rounded-3xl shadow-xl overflow-hidden flex flex-col"
             >
-              <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-[#E8E4DF] dark:border-[#2E2C28]">
+              <div className="flex flex-col gap-3 px-5 pt-5 pb-4 border-b border-[#E8E4DF] dark:border-[#2E2C28] sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:pt-6">
                 <div className="flex items-center gap-2">
                   <span className="text-lg">{subjectConfig[viewNote.subject]?.emoji ?? '📝'}</span>
                   <span className="text-xs font-medium text-[#9B9590]">{viewNote.subject}</span>
                   {viewNote.mood && <span className="text-sm">{MOOD_CONFIG[viewNote.mood].emoji}</span>}
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="secondary" size="sm" onClick={() => { setViewNote(null); useStore.getState().openEditor(viewNote.id); }}>
+                <div className="flex flex-wrap items-center justify-end gap-1.5" onClick={(event) => event.stopPropagation()}>
+                  <Button variant="secondary" size="sm" disabled={!!loadingStudy} onClick={() => void generateStudyContent(viewNote, 'flashcards')}>
+                    {loadingStudy === 'flashcards' ? <Loader2 size={13} className="animate-spin" /> : <Layers size={13} />}
+                    Flashcards
+                  </Button>
+                  <Button variant="secondary" size="sm" disabled={!!loadingStudy} onClick={() => void generateStudyContent(viewNote, 'exam')}>
+                    {loadingStudy === 'exam' ? <Loader2 size={13} className="animate-spin" /> : <FileText size={13} />}
+                    Devoirs
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={() => { setViewNote(null); openEditor(viewNote.id); }}>
                     Edit
                   </Button>
-                  <button onClick={() => setViewNote(null)} className="p-1.5 rounded-xl hover:bg-[#F5F3EF] dark:hover:bg-[#242320] text-[#9B9590]">
+                  <button type="button" aria-label="Fermer la note" onClick={() => setViewNote(null)} className="p-1.5 rounded-xl hover:bg-[#F5F3EF] dark:hover:bg-[#242320] text-[#9B9590]">
                     <X size={16} />
                   </button>
                 </div>
@@ -336,9 +379,16 @@ export default function JournalPage() {
         )}
       </AnimatePresence>
 
+      {studyContent && (
+        <NoteStudyModal content={studyContent} onClose={() => setStudyContent(null)} />
+      )}
+
       {/* Editor + PIN overlays */}
       <NoteEditor />
-      <PinLockModal />
+      <PinLockModal onUnlock={(noteId) => {
+        const unlockedNote = useStore.getState().notes.find((note) => note.id === noteId);
+        if (unlockedNote) setViewNote(unlockedNote);
+      }} />
     </div>
   );
 }

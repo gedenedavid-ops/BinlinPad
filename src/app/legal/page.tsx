@@ -1,12 +1,13 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { LEGAL_DOCUMENT_VERSION } from '@/lib/legal-consent';
 
 export const metadata: Metadata = {
   title: 'Mentions légales & Politique de confidentialité',
   description: 'Conditions Générales d\'Utilisation et Politique de confidentialité de BinlinPad.',
 };
 
-const LAST_UPDATED = '25 août 2025';
+const LAST_UPDATED = '27 septembre 2026';
 const APP_URL = 'https://cake-alpha-seven.vercel.app';
 const CONTACT_EMAIL = 'gedenedavid@gmail.com';
 
@@ -33,6 +34,7 @@ export default function LegalPage() {
               ['#cgu', 'Conditions d\'utilisation'],
               ['#donnees', 'Données personnelles'],
               ['#ia', 'Utilisation de l\'IA'],
+              ['#prestataires', 'Services tiers'],
               ['#droits', 'Vos droits'],
               ['#cookies', 'Cookies & Analytics'],
               ['#contact', 'Contact'],
@@ -64,24 +66,36 @@ export default function LegalPage() {
 
           <Block title="2. Acceptation des conditions">
             <p>
-              L&apos;utilisation de BinlinPad implique l&apos;acceptation pleine et entière des présentes conditions.
-              Si vous n&apos;acceptez pas ces conditions, vous ne devez pas utiliser le service.
+              La création d&apos;un compte est conditionnée à des confirmations séparées : acceptation des présentes
+              Conditions Générales d&apos;Utilisation, reconnaissance de la Politique de Confidentialité, accord au
+              traitement décrit pour les fonctions IA et confirmation d&apos;âge ou d&apos;autorisation parentale.
+              L&apos;API refuse l&apos;inscription si l&apos;une de ces confirmations manque.
             </p>
             <p>
-              L&apos;utilisation par un mineur (moins de 16 ans) doit être effectuée avec le consentement
-              d&apos;un parent ou tuteur légal.
+              La version acceptée et la date d&apos;acceptation sont conservées avec le compte. La déclaration
+              d&apos;âge ou d&apos;autorisation est déclarative : BinlinPad ne vérifie pas l&apos;identité du parent ou tuteur.
+              Si vous avez moins de 16 ans, demandez l&apos;accord de votre parent ou représentant légal avant
+              l&apos;inscription. Celui-ci doit lire ces informations avec vous.
             </p>
+            <p className="text-xs text-[#9B9590]">Version juridique : {LEGAL_DOCUMENT_VERSION}.</p>
           </Block>
 
           <Block title="3. Description du service">
             <p>BinlinPad vous permet de :</p>
             <ul>
               <li>Prendre et organiser des notes de cours par matière</li>
+              <li>Réviser ses notes avec des flashcards et générer des devoirs imprimables</li>
+              <li>Corriger ou compléter un texte, dicter une note et transcrire une image</li>
               <li>Interroger un tuteur IA basé sur vos propres notes</li>
               <li>Visualiser vos connaissances sous forme de graphe interactif</li>
               <li>Tenir un journal d&apos;humeur personnel et privé</li>
               <li>Demander volontairement à être mis en contact avec un conseiller</li>
             </ul>
+            <p>
+              Les limites actuellement appliquées par compte sont de 200 000 tokens par jour, 200 000 tokens
+              par mois et trois scans OCR par jour. Ces quotas servent à limiter les abus et à maîtriser les
+              coûts; la présente page doit être actualisée avant tout changement de ces limites.
+            </p>
           </Block>
 
           <Block title="4. Compte utilisateur">
@@ -89,6 +103,10 @@ export default function LegalPage() {
               La création d&apos;un compte est nécessaire pour accéder au service. Vous êtes responsable
               de la confidentialité de vos identifiants. Toute activité effectuée depuis votre compte
               est sous votre responsabilité.
+            </p>
+            <p>
+              Vous devez fournir une adresse email valide et des informations exactes. Les comptes créés
+              par email conservent un hash du mot de passe, jamais le mot de passe en clair.
             </p>
             <p>
               Nous nous réservons le droit de suspendre ou supprimer un compte en cas d&apos;utilisation
@@ -111,7 +129,9 @@ export default function LegalPage() {
             <p>
               BinlinPad est fourni &quot;tel quel&quot;, sans garantie de disponibilité continue.
               Des interruptions peuvent survenir pour maintenance ou en cas d&apos;incident technique.
-              Nous ne saurions être tenus responsables des pertes de données liées à une interruption de service.
+              Exportez régulièrement les données importantes. Les réponses générées par l&apos;IA peuvent être
+              incomplètes ou inexactes et doivent être vérifiées; elles ne remplacent pas un enseignant, un
+              professionnel de santé ou un conseiller.
             </p>
           </Block>
 
@@ -143,6 +163,7 @@ export default function LegalPage() {
                 <tr><td>Mot de passe (haché bcrypt)</td><td>Authentification</td><td>MongoDB Atlas — jamais en clair</td></tr>
                 <tr><td>Avatar (si connexion Google)</td><td>Affichage profil</td><td>MongoDB Atlas</td></tr>
                 <tr><td>Type de profil (élève/étudiant)</td><td>Personnalisation tuteur IA</td><td>MongoDB Atlas</td></tr>
+                <tr><td>Acceptations légales</td><td>Version, date et confirmations faites à l&apos;inscription</td><td>MongoDB Atlas</td></tr>
               </tbody>
             </table>
             <p className="mt-3">Lors de l&apos;utilisation du service, nous stockons :</p>
@@ -151,48 +172,71 @@ export default function LegalPage() {
                 <tr><th>Donnée</th><th>Finalité</th><th>Envoyée à des tiers ?</th></tr>
               </thead>
               <tbody>
-                <tr><td>Vos notes (titre, contenu, matière)</td><td>Service de tutorat IA</td><td>Oui — sur demande explicite uniquement (voir §9)</td></tr>
+                <tr><td>Notes, tags et pièces jointes</td><td>Organisation, indexation et fonctions de révision</td><td>Selon les flux détaillés au §9</td></tr>
                 <tr><td>Humeur par note (facultative)</td><td>Suivi personnel du rythme d&apos;étude</td><td><strong>Non — jamais envoyée à l&apos;IA ou à des tiers</strong></td></tr>
                 <tr><td>Historique de conversations</td><td>Continuité pédagogique</td><td>Oui — voir §9</td></tr>
-                <tr><td>Préférences d&apos;affichage</td><td>Personnalisation UI</td><td>Non — stocké localement</td></tr>
+                <tr><td>Journaux de quota IA</td><td>Provider, action, modèle et compteurs de tokens par période</td><td>MongoDB Atlas</td></tr>
+                <tr><td>Préférences d&apos;affichage et hash PIN</td><td>Personnalisation et verrouillage local</td><td>Non — stockés dans le navigateur</td></tr>
               </tbody>
             </table>
+            <p>
+              Le code PIN masque une note dans l&apos;interface; il ne chiffre pas son contenu dans MongoDB.
+              Dans la version actuelle, les notes protégées peuvent également être indexées par Voyage AI et
+              apparaître dans les résultats de recherche sémantique. N&apos;utilisez pas le PIN comme un chiffrement
+              ou comme une garantie que le contenu ne sera pas traité par les services IA.
+            </p>
           </Block>
 
-          <Block title="9. Services tiers et transfert de données">
+          <Block id="prestataires" title="9. Services tiers et transfert de données">
             <p>BinlinPad utilise les services tiers suivants :</p>
             <ul>
               <li>
-                <strong>DeepSeek</strong> (IA tuteur) — reçoit uniquement : vos notes pertinentes à la question posée,
-                le type de profil (élève/étudiant), et l&apos;historique récent de la conversation.
-                Jamais votre email, nom, humeur ou données sensibles.
+                <strong>DeepSeek</strong> (tuteur et analyses pédagogiques) — reçoit les messages nécessaires
+                au chat, les extraits de notes et d&apos;historique sélectionnés pour répondre, ainsi que le type
+                de profil. Il traite aussi les actions de comparaison, complément, flashcards et devoirs.
+                Le nom, l&apos;email et l&apos;humeur ne sont pas ajoutés aux prompts.
               </li>
               <li>
-                <strong>Voyage AI</strong> — vectorise le texte de vos notes et questions pour la recherche sémantique.
+                <strong>Voyage AI</strong> — reçoit le titre, la matière et le contenu d&apos;une note lors de son
+                enregistrement ou de sa modification afin de créer son embedding; il reçoit aussi les questions
+                et échanges utilisés pour la recherche sémantique. L&apos;indexation d&apos;une note se déclenche avec
+                son enregistrement, pas seulement lors d&apos;une question au tuteur.
               </li>
               <li>
-                <strong>Qdrant Cloud</strong> — stocke les représentations vectorielles de vos notes et échanges,
-                isolées par identifiant utilisateur.
+                <strong>Qdrant</strong> — stocke les embeddings et les éléments nécessaires à la recherche
+                sémantique, avec un identifiant utilisateur servant à isoler les résultats.
+              </li>
+              <li>
+                <strong>Google Gemini</strong> — reçoit le texte, le titre et la matière lors d&apos;une correction,
+                ou l&apos;image envoyée lors d&apos;une demande OCR. Ces requêtes sont déclenchées depuis l&apos;interface.
+              </li>
+              <li>
+                <strong>Vercel</strong> — héberge l&apos;application et fournit des métriques d&apos;usage. Les régions
+                de traitement et durées de conservation dépendent de la configuration de déploiement et des
+                politiques de ces prestataires.
               </li>
               <li>
                 <strong>MongoDB Atlas</strong> — base de données principale, hébergée en Europe (AWS).
               </li>
               <li>
-                <strong>Google OAuth</strong> — uniquement si vous choisissez la connexion Google.
-                Données reçues : nom, email, avatar.
-              </li>
-              <li>
-                <strong>Vercel Analytics</strong> — métriques de navigation anonymisées (pages vues, pays).
-                Aucun cookie de tracking persistant.
+                <strong>Google OAuth</strong> — le fournisseur est configuré côté serveur, mais l&apos;inscription
+                Google n&apos;est pas actuellement proposée depuis le formulaire. Si elle est activée, Google
+                transmettra les données de profil nécessaires, comme le nom, l&apos;email et l&apos;avatar.
               </li>
             </ul>
+            <p>
+              Le texte de vos notes peut contenir des informations personnelles : évitez d&apos;y inscrire des
+              données sensibles qui ne sont pas nécessaires à vos études. Les traitements externes dépendent
+              également des conditions et politiques de conservation de chaque prestataire.
+            </p>
           </Block>
 
           <Block title="10. Durée de conservation">
             <ul>
-              <li>Notes et compte : conservés jusqu&apos;à suppression par l&apos;utilisateur</li>
-              <li>Historique de conversation vectorisé : maximum 12 mois (purge automatique)</li>
-              <li>Sessions de conversation : conservées jusqu&apos;à suppression manuelle (max 20 affichées)</li>
+              <li>Compte, notes, acceptations légales et journaux Krékré : conservés jusqu&apos;à la suppression du compte, sous réserve des copies de sauvegarde des prestataires.</li>
+              <li>Vecteurs de l&apos;historique de chat : soumis à la purge automatique prévue, avec suppression également tentée lors de la suppression du compte.</li>
+              <li>Sessions de conversation : conservées jusqu&apos;à leur suppression ou à la suppression du compte.</li>
+              <li>Le contenu envoyé à un service IA peut être soumis à la politique de conservation de ce prestataire.</li>
             </ul>
           </Block>
         </section>
@@ -205,13 +249,15 @@ export default function LegalPage() {
 
           <Block title="11. Ce que l'IA voit et ne voit pas">
             <p>
-              Le tuteur IA (BinlinPad) ne reçoit <strong>que les notes directement pertinentes</strong> à
-              la question que vous posez — pas l&apos;intégralité de vos notes. Cette sélection est automatique
-              et basée sur la similarité sémantique.
+              Les données transmises dépendent de la fonction : le tuteur reçoit les messages et les extraits
+              pertinents; la correction reçoit le texte, le titre et la matière; l&apos;OCR reçoit l&apos;image
+              sélectionnée. Les notes sont également envoyées à Voyage AI pour indexation lorsqu&apos;elles sont
+              enregistrées ou modifiées.
             </p>
             <p>
-              <strong>L&apos;IA ne reçoit jamais :</strong> votre humeur, vos données personnelles identifiantes
-              (email, nom), vos notes verrouillées par PIN, ni aucune donnée non liée à votre question.
+              Les prompts n&apos;ajoutent pas votre nom, votre email ni votre humeur. Toutefois, le texte que vous
+              écrivez peut lui-même contenir des informations personnelles. Le PIN masque une note dans
+              l&apos;interface, mais n&apos;empêche pas son indexation sémantique ni son stockage côté serveur.
             </p>
           </Block>
 
@@ -265,10 +311,8 @@ export default function LegalPage() {
               <li><strong>Droit de rectification</strong> — modifiez vos notes et profil à tout moment</li>
               <li><strong>Droit de suppression</strong> — supprimez vos notes et conversations depuis l&apos;UI</li>
               <li><strong>Droit à la portabilité</strong> — exportez vos notes en JSON depuis les Paramètres</li>
-              <li>
-                <strong>Retrait du consentement IA</strong> — désactivez les fonctionnalités IA dans les
-                Paramètres ; aucune donnée ne sera envoyée à DeepSeek ou Voyage AI
-              </li>
+              <li><strong>Retrait du consentement</strong> — contactez l&apos;éditeur pour demander la cessation des traitements facultatifs par les services IA.</li>
+              <li><strong>Suppression du compte</strong> — utilisez la commande de suppression dans les Paramètres; elle supprime le compte, les notes, les sessions, les demandes de contact et les journaux d&apos;usage, et demande la suppression des vecteurs Qdrant.</li>
             </ul>
             <p>
               Pour toute demande de suppression de compte ou d&apos;exercice de vos droits, contactez-nous à{' '}
@@ -339,9 +383,9 @@ export default function LegalPage() {
 
 // ─── Composants utilitaires ───────────────────────────────────────────────────
 
-function Block({ title, children }: { title: string; children: React.ReactNode }) {
+function Block({ title, children, id }: { title: string; children: React.ReactNode; id?: string }) {
   return (
-    <div className="bg-white dark:bg-[#1C1B19] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-2xl p-6 space-y-3">
+    <div id={id} className="bg-white dark:bg-[#1C1B19] border border-[#E8E4DF] dark:border-[#2E2C28] rounded-2xl p-6 space-y-3">
       <h3 className="font-semibold text-[#1A1A1A] dark:text-[#F0EDE8] text-base">{title}</h3>
       <div className="text-sm text-[#57514C] dark:text-[#9B9590] leading-relaxed space-y-2 [&_ul]:list-none [&_ul]:space-y-1.5 [&_ul>li]:flex [&_ul>li]:gap-2 [&_ul>li]:before:content-['·'] [&_ul>li]:before:text-[#F4A236] [&_ul>li]:before:font-bold [&_table]:w-full [&_table]:text-xs [&_th]:text-left [&_th]:font-semibold [&_th]:text-[#9B9590] [&_th]:pb-2 [&_th]:border-b [&_th]:border-[#F5F3EF] dark:[&_th]:border-[#2E2C28] [&_td]:py-1.5 [&_td]:pr-4 [&_td]:border-b [&_td]:border-[#F5F3EF] dark:[&_td]:border-[#2E2C28] [&_td]:align-top">
         {children}
