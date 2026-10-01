@@ -179,7 +179,7 @@ export function ChatInput({ onSend, onReset, disabled = false, placeholder, init
       )}
 
       <div className={cn(
-        'flex flex-col bg-white dark:bg-[#242320] border rounded-2xl transition-all duration-200',
+        'flex flex-col bg-white dark:bg-[#242320] border rounded-2xl transition-[color,background-color,border-color,box-shadow,transform] duration-200',
         'border-[#E8E4DF] dark:border-[#2E2C28]',
         'shadow-[0_2px_12px_rgba(26,26,26,0.06)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.25)]',
         'focus-within:border-[#F4A236]/60 focus-within:shadow-[0_2px_16px_rgba(244,162,54,0.12)]',
@@ -242,7 +242,7 @@ export function ChatInput({ onSend, onReset, disabled = false, placeholder, init
               onClick={handleSend}
               disabled={!hasContent || disabled}
               className={cn(
-                'w-8 h-8 rounded-xl flex items-center justify-center transition-all flex-shrink-0',
+                'w-8 h-8 rounded-xl flex items-center justify-center transition-[color,background-color,border-color,box-shadow,transform] flex-shrink-0',
                 hasContent && !disabled
                   ? 'bg-[#F4A236] text-white hover:bg-[#EAA240] active:scale-95 shadow-sm'
                   : 'bg-[#F5F3EF] dark:bg-[#2E2C28] text-[#C8C4BE] cursor-not-allowed'
